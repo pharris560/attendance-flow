@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke-width='1.5' stroke='currentColor'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443a55.381 55.381 0 015.25 2.882V15' /%3e%3c/svg%3e" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ACE Attendance - Smart Attendance Tracking</title>
+    <script type="module" crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script type="module" crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+      .loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+      .spinner { animate: spin 1s linear infinite; width: 3rem; height: 3rem; border: 4px solid #e5e7eb; border-top: 4px solid #3b82f6; border-radius: 50%; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </div>
+    <script type="module">
+      // Simple loading message for now
+      document.getElementById('root').innerHTML = `
+        <div style="min-height: 100vh; background: #f9fafb; display: flex; align-items: center; justify-content: center;">
+          <div style="text-align: center; padding: 2rem; background: white; border-radius: 0.75rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+            <h1 style="font-size: 2rem; font-weight: bold; color: #1f2937; margin-bottom: 1rem;">ACE Attendance</h1>
+            <p style="color: #6b7280; margin-bottom: 1.5rem;">Smart Attendance Tracking System</p>
+            <div style="background: #dbeafe; color: #1e40af; padding: 1rem; border-radius: 0.5rem; font-size: 0.875rem;">
+              <strong>Setup Required:</strong><br>
+              Please add environment variables in Netlify:<br>
+              • VITE_SUPABASE_URL<br>
+              • VITE_SUPABASE_ANON_KEY<br><br>
+              Then redeploy to activate the full application.
+            </div>
+          </div>
+        </div>
+      `;
+    </script>
+  </body>
+</html>

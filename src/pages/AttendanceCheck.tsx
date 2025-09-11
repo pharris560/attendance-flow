@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Users, UserCheck, ArrowLeft } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
+import { Student, Staff } from '../types';
 
 const AttendanceCheck: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -16,6 +17,9 @@ const AttendanceCheck: React.FC = () => {
   const [processing, setProcessing] = useState(true);
 
   useEffect(() => {
+    console.log('AttendanceCheck component mounted');
+    console.log('Current URL:', window.location.href);
+    console.log('Search params:', Object.fromEntries(searchParams.entries()));
     processAttendance();
   }, []);
 
@@ -37,7 +41,7 @@ const AttendanceCheck: React.FC = () => {
 
       if (!type || !id || !name) {
         console.error('Missing required parameters:', { type, id, name });
-        throw new Error('Missing required parameters');
+        throw new Error('Missing required parameters. Please scan a valid QR code from the ACE Attendance app.');
       }
 
       console.log('Looking for person:', { type, id });
@@ -51,7 +55,7 @@ const AttendanceCheck: React.FC = () => {
         console.error(`${type} not found with ID: ${id}`);
         console.log('Available students:', students.map(s => ({ id: s.id, name: `${s.firstName} ${s.lastName}` })));
         console.log('Available staff:', staff.map(s => ({ id: s.id, name: `${s.firstName} ${s.lastName}` })));
-        throw new Error(`${type === 'student' ? 'Student' : 'Staff member'} not found`);
+        throw new Error(`${type === 'student' ? 'Student' : 'Staff member'} not found. Please ensure the QR code is from the current ACE Attendance system.`);
       }
 
       console.log('Found person:', person);
@@ -64,11 +68,13 @@ const AttendanceCheck: React.FC = () => {
       };
 
       if (type === 'student') {
-        attendanceData.studentId = person.id;
-        attendanceData.classId = person.classId;
+        const student = person as Student;
+        attendanceData.studentId = student.id;
+        attendanceData.classId = student.classId;
       } else {
-        attendanceData.staffId = person.id;
-        attendanceData.department = person.department;
+        const staff = person as Staff;
+        attendanceData.staffId = staff.id;
+        attendanceData.department = staff.department;
       }
 
       console.log('Marking attendance:', attendanceData);
@@ -81,6 +87,11 @@ const AttendanceCheck: React.FC = () => {
         person,
         type
       });
+      
+      // Auto-redirect after 5 seconds
+      setTimeout(() => {
+        navigate('/');
+      }, 5000);
 
     } catch (error) {
       console.error('Error processing attendance:', error);
@@ -109,7 +120,7 @@ const AttendanceCheck: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 lg:p-6">
       <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
         <div className="mb-6">
           {status?.success ? (
@@ -118,13 +129,13 @@ const AttendanceCheck: React.FC = () => {
             <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
           )}
           
-          <h1 className={`text-2xl font-bold mb-2 ${
+          <h1 className={`text-xl lg:text-2xl font-bold mb-2 ${
             status?.success ? 'text-green-900' : 'text-red-900'
           }`}>
             {status?.success ? 'Attendance Recorded!' : 'Error'}
           </h1>
           
-          <p className={`text-lg ${
+          <p className={`text-base lg:text-lg ${
             status?.success ? 'text-green-700' : 'text-red-700'
           }`}>
             {status?.message}
@@ -171,13 +182,13 @@ const AttendanceCheck: React.FC = () => {
         <div className="space-y-3">
           <button
             onClick={goToDashboard}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white px-4 lg:px-6 py-3 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 text-sm lg:text-base"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Go to Dashboard</span>
           </button>
           
-          <p className="text-xs text-gray-500">
+          <p className="text-xs lg:text-sm text-gray-500">
             This window will automatically redirect in 10 seconds
           </p>
         </div>

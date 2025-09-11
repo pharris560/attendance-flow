@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, User, Upload, FileText, X } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, User, Upload, FileText, X, Crop } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
+import html2canvas from 'html2canvas';
 
 const Students: React.FC = () => {
   const { students, classes, addStudent, updateStudent, deleteStudent } = useApp();
@@ -14,6 +15,14 @@ const Students: React.FC = () => {
   const [csvError, setCsvError] = useState<string>('');
   const [isProcessingCsv, setIsProcessingCsv] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [showCropModal, setShowCropModal] = useState(false);
+  const [originalImage, setOriginalImage] = useState<string>('');
+  const [croppedImage, setCroppedImage] = useState<string>('');
+  const [cropArea, setCropArea] = useState({ x: 0, y: 0, width: 200, height: 200 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [personToDelete, setPersonToDelete] = useState<any>(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -24,6 +33,89 @@ const Students: React.FC = () => {
     `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (selectedClass === '' || student.classId === selectedClass)
   );
+
+  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const imageUrl = event.target?.result as string;
+      setOriginalImage(imageUrl);
+      setShowCropModal(true);
+      // Reset crop area to center
+      setCropArea({ x: 50, y: 50, width: 200, height: 200 });
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragStart({
+      x: e.clientX - rect.left - cropArea.x,
+      y: e.clientY - rect.top - cropArea.y
+    });
+  };
+
+  const handleCropMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    
+    const rect = e.currentTarget.getBoundingClientRect();
+    const newX = Math.max(0, Math.min(rect.width - cropArea.width, e.clientX - rect.left - dragStart.x));
+    const newY = Math.max(0, Math.min(rect.height - cropArea.height, e.clientY - rect.top - dragStart.y));
+    
+    setCropArea(prev => ({ ...prev, x: newX, y: newY }));
+  };
+
+  const handleCropMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const applyCrop = () => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const img = new Image();
+    
+    img.onload = () => {
+      canvas.width = 200;
+      canvas.height = 200;
+      
+      // Calculate scale factors
+      const containerWidth = 400; // Preview container width
+      const containerHeight = 300; // Preview container height
+      const scaleX = img.width / containerWidth;
+      const scaleY = img.height / containerHeight;
+      
+      // Draw cropped image
+      ctx?.drawImage(
+        img,
+        cropArea.x * scaleX,
+        cropArea.y * scaleY,
+        cropArea.width * scaleX,
+        cropArea.height * scaleY,
+        0,
+        0,
+        200,
+        200
+      );
+      
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      setCroppedImage(croppedDataUrl);
+      
+      // Convert to File object
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const croppedFile = new File([blob], 'cropped-photo.jpg', { type: 'image/jpeg' });
+          setPhotoFile(croppedFile);
+        }
+      }, 'image/jpeg', 0.8);
+      
+      setShowCropModal(false);
+    };
+    
+    img.src = originalImage;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +129,7 @@ const Students: React.FC = () => {
       setEditingStudent(null);
       setFormData({ firstName: '', lastName: '', classId: '' });
       setPhotoFile(null);
+      setCroppedImage('');
     } catch (error) {
       console.error('Error saving student:', error);
       alert('Error saving student. Please try again.');
@@ -54,11 +147,167 @@ const Students: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this student?')) {
-      deleteStudent(id).catch(error => {
+    const student = students.find(s => s.id === id);
+    setPersonToDelete(student);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (personToDelete) {
+      try {
+        await deleteStudent(personToDelete.id);
+      } catch (error) {
         console.error('Error deleting student:', error);
         alert('Error deleting student. Please try again.');
+      }
+    }
+    setShowDeleteModal(false);
+    setPersonToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setPersonToDelete(null);
+  };
+
+  const generateIDCard = async (student: any) => {
+    const studentClass = classes.find(c => c.id === student.classId);
+    
+    // Create a temporary div for the ID card
+    const cardDiv = document.createElement('div');
+    cardDiv.style.width = '400px';
+    cardDiv.style.height = '250px';
+    cardDiv.style.backgroundColor = '#ffffff';
+    cardDiv.style.border = '2px solid #3B82F6';
+    cardDiv.style.borderRadius = '12px';
+    cardDiv.style.padding = '20px';
+    cardDiv.style.fontFamily = 'Arial, sans-serif';
+    cardDiv.style.position = 'absolute';
+    cardDiv.style.left = '-9999px';
+    cardDiv.style.display = 'flex';
+    cardDiv.style.flexDirection = 'column';
+    cardDiv.style.justifyContent = 'space-between';
+    
+    // Header
+    const header = document.createElement('div');
+    header.style.textAlign = 'center';
+    header.style.marginBottom = '15px';
+    header.innerHTML = `
+      <h2 style="margin: 0; color: #1F2937; font-size: 18px; font-weight: bold;">ACE Attendance</h2>
+      <p style="margin: 5px 0 0 0; color: #6B7280; font-size: 12px;">Student ID Card</p>
+    `;
+    
+    // Main content
+    const content = document.createElement('div');
+    content.style.display = 'flex';
+    content.style.alignItems = 'center';
+    content.style.gap = '20px';
+    
+    // Photo section
+    const photoSection = document.createElement('div');
+    photoSection.style.flexShrink = '0';
+    
+    if (student.photoUrl) {
+      const img = document.createElement('img');
+      img.src = student.photoUrl;
+      img.style.width = '80px';
+      img.style.height = '80px';
+      img.style.borderRadius = '50%';
+      img.style.objectFit = 'cover';
+      img.style.border = '2px solid #E5E7EB';
+      photoSection.appendChild(img);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.style.width = '80px';
+      placeholder.style.height = '80px';
+      placeholder.style.borderRadius = '50%';
+      placeholder.style.backgroundColor = '#3B82F6';
+      placeholder.style.display = 'flex';
+      placeholder.style.alignItems = 'center';
+      placeholder.style.justifyContent = 'center';
+      placeholder.style.color = 'white';
+      placeholder.style.fontSize = '24px';
+      placeholder.style.fontWeight = 'bold';
+      placeholder.textContent = `${student.firstName[0]}${student.lastName[0]}`;
+      photoSection.appendChild(placeholder);
+    }
+    
+    // Info section
+    const infoSection = document.createElement('div');
+    infoSection.style.flex = '1';
+    infoSection.innerHTML = `
+      <h3 style="margin: 0 0 8px 0; color: #1F2937; font-size: 20px; font-weight: bold;">${student.firstName} ${student.lastName}</h3>
+      <p style="margin: 0 0 4px 0; color: #3B82F6; font-size: 14px; font-weight: 600;">${studentClass ? studentClass.name : 'No class assigned'}</p>
+      <p style="margin: 0; color: #6B7280; font-size: 12px;">Student ID: ${student.id.substring(0, 8)}</p>
+    `;
+    
+    // QR Code section
+    const qrSection = document.createElement('div');
+    qrSection.style.flexShrink = '0';
+    qrSection.style.textAlign = 'center';
+    
+    if (student.qrCode && student.qrCode.startsWith('data:image')) {
+      const qrImg = document.createElement('img');
+      qrImg.src = student.qrCode;
+      qrImg.style.width = '60px';
+      qrImg.style.height = '60px';
+      qrImg.style.border = '1px solid #E5E7EB';
+      qrImg.style.borderRadius = '4px';
+      qrSection.appendChild(qrImg);
+      
+      const qrLabel = document.createElement('p');
+      qrLabel.style.margin = '4px 0 0 0';
+      qrLabel.style.fontSize = '10px';
+      qrLabel.style.color = '#6B7280';
+      qrLabel.textContent = 'Scan for Attendance';
+      qrSection.appendChild(qrLabel);
+    }
+    
+    content.appendChild(photoSection);
+    content.appendChild(infoSection);
+    content.appendChild(qrSection);
+    
+    // Footer
+    const footer = document.createElement('div');
+    footer.style.textAlign = 'center';
+    footer.style.marginTop = '15px';
+    footer.style.paddingTop = '10px';
+    footer.style.borderTop = '1px solid #E5E7EB';
+    footer.innerHTML = `
+      <p style="margin: 0; color: #9CA3AF; font-size: 10px;">Generated on ${new Date().toLocaleDateString()}</p>
+    `;
+    
+    cardDiv.appendChild(header);
+    cardDiv.appendChild(content);
+    cardDiv.appendChild(footer);
+    
+    // Add to DOM temporarily
+    document.body.appendChild(cardDiv);
+    
+    try {
+      // Wait a bit for images to load
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Generate canvas
+      const canvas = await html2canvas(cardDiv, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
       });
+      
+      // Download the image
+      const link = document.createElement('a');
+      link.download = `${student.firstName}_${student.lastName}_ID_Card.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+    } catch (error) {
+      console.error('Error generating ID card:', error);
+      alert('Error generating ID card. Please try again.');
+    } finally {
+      // Remove temporary element
+      document.body.removeChild(cardDiv);
     }
   };
 
@@ -184,32 +433,34 @@ const Students: React.FC = () => {
   };
 
   return (
-    <div className="ml-64 p-6">
+    <div className="lg:ml-64 p-4 lg:p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Students</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Students</h1>
           <p className="text-gray-600 mt-2">Manage your student roster</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
           <button
             onClick={() => setShowCsvModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+            className="bg-green-600 hover:bg-green-700 text-white px-3 lg:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 text-sm lg:text-base"
           >
             <Upload className="h-4 w-4" />
-            <span>Import CSV</span>
+            <span className="hidden sm:inline">Import CSV</span>
+            <span className="sm:hidden">Import</span>
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 lg:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 text-sm lg:text-base"
           >
             <Plus className="h-4 w-4" />
-            <span>Add Student</span>
+            <span className="hidden sm:inline">Add Student</span>
+            <span className="sm:hidden">Add</span>
           </button>
         </div>
       </div>
 
       {/* Search */}
-      <div className="mb-6 flex items-center space-x-4">
+      <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <input
@@ -224,7 +475,7 @@ const Students: React.FC = () => {
         <select
           value={selectedClass}
           onChange={(e) => setSelectedClass(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
         >
           <option value="">All Classes</option>
           {classes.map((cls) => (
@@ -234,7 +485,7 @@ const Students: React.FC = () => {
       </div>
 
       {/* Students Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
         {filteredStudents.map((student) => {
           const studentClass = classes.find(c => c.id === student.classId);
           return (
@@ -273,6 +524,36 @@ const Students: React.FC = () => {
               <p className="text-sm text-gray-500 mb-3 text-center">
                 {studentClass ? studentClass.name : 'No class assigned'}
               </p>
+              
+              {/* QR Code Section */}
+              <div className="border-t border-gray-200 pt-4">
+                <div className="text-center">
+                  <p className="text-xs font-medium text-gray-700 mb-2">QR Code</p>
+                  {student.qrCode && student.qrCode.startsWith('data:image') ? (
+                    <div className="flex flex-col items-center space-y-2">
+                      <img
+                        src={student.qrCode}
+                        alt={`QR Code for ${student.firstName} ${student.lastName}`}
+                        className="w-20 h-20 border border-gray-200 rounded object-contain bg-white"
+                      />
+                      <button
+                        onClick={() => {
+                          generateIDCard(student);
+                        }}
+                        className="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 px-2 py-1 rounded transition-colors duration-200 font-medium"
+                      >
+                        Download ID Card
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center mx-auto">
+                      <div className="text-center">
+                        <div className="text-gray-400 text-xs">Generating...</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           );
         })}
@@ -329,10 +610,21 @@ const Students: React.FC = () => {
                 <input
                   type="file"
                   accept="image/*"
-                  onChange={(e) => setPhotoFile(e.target.files?.[0] || null)}
+                  onChange={handlePhotoSelect}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">Upload a photo file or leave blank for default icon</p>
+                
+                {croppedImage && (
+                  <div className="mt-2">
+                    <p className="text-xs text-gray-600 mb-1">Preview:</p>
+                    <img
+                      src={croppedImage}
+                      alt="Cropped preview"
+                      className="w-16 h-16 rounded-full object-cover border border-gray-300"
+                    />
+                  </div>
+                )}
               </div>
               
               <div className="flex items-center justify-end space-x-3 pt-4">
@@ -343,6 +635,7 @@ const Students: React.FC = () => {
                     setEditingStudent(null);
                     setFormData({ firstName: '', lastName: '', classId: '' });
                     setPhotoFile(null);
+                    setCroppedImage('');
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
                 >
@@ -356,6 +649,89 @@ const Students: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Photo Crop Modal */}
+      {showCropModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">Crop Photo</h2>
+              <button
+                onClick={() => {
+                  setShowCropModal(false);
+                  setOriginalImage('');
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="text-center">
+                <div 
+                  className="relative inline-block border-2 border-gray-300 rounded-lg overflow-hidden cursor-move"
+                  style={{ width: '400px', height: '300px' }}
+                  onMouseMove={handleCropMouseMove}
+                  onMouseUp={handleCropMouseUp}
+                  onMouseLeave={handleCropMouseUp}
+                >
+                  <img
+                    src={originalImage}
+                    alt="Original"
+                    className="w-full h-full object-cover"
+                    draggable={false}
+                  />
+                  
+                  {/* Crop overlay */}
+                  <div
+                    className="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 cursor-move"
+                    style={{
+                      left: `${cropArea.x}px`,
+                      top: `${cropArea.y}px`,
+                      width: `${cropArea.width}px`,
+                      height: `${cropArea.height}px`,
+                    }}
+                    onMouseDown={handleCropMouseDown}
+                  >
+                    <div className="absolute inset-0 border-2 border-dashed border-white opacity-75"></div>
+                    
+                    {/* Corner handles */}
+                    <div className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-nw-resize"></div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-ne-resize"></div>
+                    <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-sw-resize"></div>
+                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-se-resize"></div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="text-center text-sm text-gray-600">
+                <Crop className="h-4 w-4 inline mr-1" />
+                Drag the blue area to select the part of the image you want to use
+              </div>
+              
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={() => {
+                    setShowCropModal(false);
+                    setOriginalImage('');
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={applyCrop}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2"
+                >
+                  <Crop className="h-4 w-4" />
+                  <span>Apply Crop</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -496,6 +872,34 @@ const Students: React.FC = () => {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && personToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Confirm Delete</h2>
+            
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete this student?
+            </p>
+            
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={handleDeleteCancel}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

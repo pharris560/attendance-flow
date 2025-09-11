@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ACE Attendance - Smart Attendance Tracking</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react-router-dom@6/dist/umd/react-router-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://unpkg.com/recharts@2/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif; }
+        .loading { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        .spinner { animation: spin 1s linear infinite; width: 3rem; height: 3rem; border: 4px solid #e5e7eb; border-top: 4px solid #3b82f6; border-radius: 50%; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="loading">
+            <div class="spinner"></div>
+        </div>
+    </div>
+
+    <script>
+        // Environment variables - replace these with your actual values
+        window.ENV = {
+            VITE_SUPABASE_URL: 'https://kzetbefeojjfwlilconv.supabase.co',
+            VITE_SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt6ZXRiZWZlb2pqZndsaWxjb252Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjU5MDQ4NzEsImV4cCI6MjA0MTQ4MDg3MX0.VvVXp8_W6wJhT8zOqJGZ8zOqJGZ8zOqJGZ8zOqJGZ8'
+        };
+
+        // Simple React app
+        const { useState, useEffect, createContext, useContext } = React;
+        const { BrowserRouter, Routes, Route, Link, useLocation, useNavigate } = ReactRouterDOM;
+
+        // Supabase client
+        const supabase = window.supabase.createClient(window.ENV.VITE_SUPABASE_URL, window.ENV.VITE_SUPABASE_ANON_KEY);
+
+        // Simple context for data
+        const AppContext = createContext();
+
+        const AppProvider = ({ children }) => {
+            const [students, setStudents] = useState([]);
+            const [staff, setStaff] = useState([]);
+            const [classes, setClasses] = useState([]);
+            const [attendanceRecords, setAttendanceRecords] = useState([]);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                loadData();
+            }, []);
+
+            const loadData = async () => {
+                try {
+                    // Load sample data for demo
+                    const sampleClasses = [
+                        { id: 'class1', name: 'Mathematics 101', description: 'Basic Mathematics', teacherId: 'teacher1' },
+                        { id: 'class2', name: 'English Literature', description: 'Classic Literature Studies', teacherId: 'teacher2' },
+                        { id: 'class3', name: 'Science Lab', description: 'Experimental Science', teacherId: 'teacher3' }
+                    ];
+
+                    const sampleStudents = [
+                        { id: 'student1', firstName: 'John', lastName: 'Smith', classId: 'class1' },
+                        { id: 'student2', firstName: 'Emma', lastName: 'Johnson', classId: 'class1' },
+                        { id: 'student3', firstName: 'Michael', lastName: 'Brown', classId: 'class2' },
+                        { id: 'student4', firstName: 'Sarah', lastName: 'Davis', classId: 'class2' }
+                    ];
+
+                    const sampleStaff = [
+                        { id: 'staff1', firstName: 'Robert', lastName: 'Thompson', department: 'Mathematics', position: 'Teacher' },
+                        { id: 'staff2', firstName: 'Jennifer', lastName: 'Garcia', department: 'English', position: 'Teacher' }
+                    ];
+
+                    setClasses(sampleClasses);
+                    setStudents(sampleStudents);
+                    setStaff(sampleStaff);
+                    setAttendanceRecords([]);
+                } catch (error) {
+                    console.error('Error loading data:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            return React.createElement(AppContext.Provider, {
+                value: { students, staff, classes, attendanceRecords, loading }
+            }, children);
+        };
+
+        const useApp = () => useContext(AppContext);
+
+        // Simple Dashboard component
+        const Dashboard = () => {
+            const { students, staff, classes, loading } = useApp();
+
+            if (loading) {
+                return React.createElement('div', { className: 'min-h-screen bg-gray-50 flex items-center justify-center' },
+                    React.createElement('div', { className: 'text-center' },
+                        React.createElement('div', { className: 'animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4' }),
+                        React.createElement('p', { className: 'text-gray-600' }, 'Loading ACE Attendance...')
+                    )
+                );
+            }
+
+            return React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
+                React.createElement('div', { className: 'max-w-7xl mx-auto' },
+                    React.createElement('div', { className: 'mb-8' },
+                        React.createElement('h1', { className: 'text-3xl font-bold text-gray-900' }, 'ACE Attendance Dashboard'),
+                        React.createElement('p', { className: 'text-gray-600 mt-2' }, 'Smart Attendance Tracking System')
+                    ),
+                    React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-6 mb-8' },
+                        React.createElement('div', { className: 'bg-white p-6 rounded-xl shadow-sm border border-gray-200' },
+                            React.createElement('div', { className: 'flex items-center justify-between' },
+                                React.createElement('div', null,
+                                    React.createElement('p', { className: 'text-sm font-medium text-gray-600' }, 'Total Students'),
+                                    React.createElement('p', { className: 'text-3xl font-bold text-gray-900 mt-2' }, students.length)
+                                ),
+                                React.createElement('div', { className: 'p-3 rounded-lg bg-blue-500' },
+                                    React.createElement('svg', { className: 'h-6 w-6 text-white', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' },
+                                        React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', strokeWidth: 2, d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z' })
+                                    )
+                                )
+                            )
+                        ),
+                        React.createElement('div', { className: 'bg-white p-6 rounded-xl shadow-sm border border-gray-200' },
+                            React.createElement('div', { className: 'flex items-center justify-between' },
+                                React.createElement('div', null,
+                                    React.createElement('p', { className: 'text-sm font-medium text-gray-600' }, 'Total Staff'),
+                                    React.createElement('p', { className: 'text-3xl font-bold text-gray-900 mt-2' }, staff.length)
+                                ),
+                                React.createElement('div', { className: 'p-3 rounded-lg bg-purple-500' },
+                                    React.createElement('svg', { className: 'h-6 w-6 text-white', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' },
+                                        React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', strokeWidth: 2, d: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' })
+                                    )
+                                )
+                            )
+                        ),
+                        React.createElement('div', { className: 'bg-white p-6 rounded-xl shadow-sm border border-gray-200' },
+                            React.createElement('div', { className: 'flex items-center justify-between' },
+                                React.createElement('div', null,
+                                    React.createElement('p', { className: 'text-sm font-medium text-gray-600' }, 'Total Classes'),
+                                    React.createElement('p', { className: 'text-3xl font-bold text-gray-900 mt-2' }, classes.length)
+                                ),
+                                React.createElement('div', { className: 'p-3 rounded-lg bg-green-500' },
+                                    React.createElement('svg', { className: 'h-6 w-6 text-white', fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor' },
+                                        React.createElement('path', { strokeLinecap: 'round', strokeLinejoin: 'round', strokeWidth: 2, d: 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253' })
+                                    )
+                                )
+                            )
+                        )
+                    ),
+                    React.createElement('div', { className: 'bg-white p-6 rounded-xl shadow-sm border border-gray-200' },
+                        React.createElement('h2', { className: 'text-xl font-semibold text-gray-900 mb-4' }, 'Quick Actions'),
+                        React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4' },
+                            React.createElement(Link, { to: '/students', className: 'p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors' },
+                                React.createElement('h3', { className: 'font-medium text-gray-900' }, 'Manage Students'),
+                                React.createElement('p', { className: 'text-sm text-gray-500 mt-1' }, 'Add, edit, and organize students')
+                            ),
+                            React.createElement(Link, { to: '/staff', className: 'p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors' },
+                                React.createElement('h3', { className: 'font-medium text-gray-900' }, 'Manage Staff'),
+                                React.createElement('p', { className: 'text-sm text-gray-500 mt-1' }, 'Add and organize staff members')
+                            ),
+                            React.createElement(Link, { to: '/classes', className: 'p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors' },
+                                React.createElement('h3', { className: 'font-medium text-gray-900' }, 'Take Attendance'),
+                                React.createElement('p', { className: 'text-sm text-gray-500 mt-1' }, 'Mark attendance for classes')
+                            ),
+                            React.createElement(Link, { to: '/qr-scanner', className: 'p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors' },
+                                React.createElement('h3', { className: 'font-medium text-gray-900' }, 'QR Scanner'),
+                                React.createElement('p', { className: 'text-sm text-gray-500 mt-1' }, 'Scan QR codes for attendance')
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Simple Students component
+        const Students = () => {
+            const { students } = useApp();
+
+            return React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
+                React.createElement('div', { className: 'max-w-7xl mx-auto' },
+                    React.createElement('div', { className: 'mb-8' },
+                        React.createElement('h1', { className: 'text-3xl font-bold text-gray-900' }, 'Students'),
+                        React.createElement('p', { className: 'text-gray-600 mt-2' }, 'Manage your student roster')
+                    ),
+                    React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' },
+                        students.map(student =>
+                            React.createElement('div', { key: student.id, className: 'bg-white p-6 rounded-xl shadow-sm border border-gray-200' },
+                                React.createElement('div', { className: 'text-center mb-4' },
+                                    React.createElement('div', { className: 'w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3' },
+                                        React.createElement('span', { className: 'text-white font-medium text-lg' }, 
+                                            student.firstName[0] + student.lastName[0]
+                                        )
+                                    )
+                                ),
+                                React.createElement('h3', { className: 'text-lg font-semibold text-gray-900 mb-1 text-center' },
+                                    student.firstName + ' ' + student.lastName
+                                ),
+                                React.createElement('p', { className: 'text-sm text-gray-500 text-center' }, 'Student ID: ' + student.id.substring(0, 8))
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Simple navigation
+        const Navigation = () => {
+            const location = useLocation();
+            
+            const navItems = [
+                { path: '/', label: 'Dashboard' },
+                { path: '/students', label: 'Students' },
+                { path: '/staff', label: 'Staff' },
+                { path: '/classes', label: 'Classes' },
+                { path: '/qr-scanner', label: 'QR Scanner' }
+            ];
+
+            return React.createElement('nav', { className: 'bg-white shadow-sm border-b border-gray-200 mb-6' },
+                React.createElement('div', { className: 'max-w-7xl mx-auto px-6' },
+                    React.createElement('div', { className: 'flex items-center justify-between h-16' },
+                        React.createElement('div', { className: 'flex items-center' },
+                            React.createElement('h1', { className: 'text-xl font-bold text-gray-800' }, 'ACE Attendance')
+                        ),
+                        React.createElement('div', { className: 'flex space-x-4' },
+                            navItems.map(item =>
+                                React.createElement(Link, {
+                                    key: item.path,
+                                    to: item.path,
+                                    className: `px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                                        location.pathname === item.path
+                                            ? 'bg-blue-100 text-blue-700'
+                                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                                    }`
+                                }, item.label)
+                            )
+                        )
+                    )
+                )
+            );
+        };
+
+        // Simple placeholder components
+        const Staff = () => React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
+            React.createElement('div', { className: 'max-w-7xl mx-auto' },
+                React.createElement('h1', { className: 'text-3xl font-bold text-gray-900 mb-4' }, 'Staff Management'),
+                React.createElement('p', { className: 'text-gray-600' }, 'Staff management features coming soon...')
+            )
+        );
+
+        const Classes = () => React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
+            React.createElement('div', { className: 'max-w-7xl mx-auto' },
+                React.createElement('h1', { className: 'text-3xl font-bold text-gray-900 mb-4' }, 'Classes & Attendance'),
+                React.createElement('p', { className: 'text-gray-600' }, 'Class management and attendance features coming soon...')
+            )
+        );
+
+        const QRScanner = () => React.createElement('div', { className: 'min-h-screen bg-gray-50 p-6' },
+            React.createElement('div', { className: 'max-w-7xl mx-auto' },
+                React.createElement('h1', { className: 'text-3xl font-bold text-gray-900 mb-4' }, 'QR Code Scanner'),
+                React.createElement('p', { className: 'text-gray-600' }, 'QR code scanning features coming soon...')
+            )
+        );
+
+        // Main App component
+        const App = () => {
+            return React.createElement(AppProvider, null,
+                React.createElement(BrowserRouter, null,
+                    React.createElement('div', { className: 'min-h-screen bg-gray-50' },
+                        React.createElement(Navigation),
+                        React.createElement(Routes, null,
+                            React.createElement(Route, { path: '/', element: React.createElement(Dashboard) }),
+                            React.createElement(Route, { path: '/students', element: React.createElement(Students) }),
+                            React.createElement(Route, { path: '/staff', element: React.createElement(Staff) }),
+                            React.createElement(Route, { path: '/classes', element: React.createElement(Classes) }),
+                            React.createElement(Route, { path: '/qr-scanner', element: React.createElement(QRScanner) })
+                        )
+                    )
+                )
+            );
+        };
+
+        // Render the app
+        ReactDOM.render(React.createElement(App), document.getElementById('root'));
+    </script>
+</body>
+</html>

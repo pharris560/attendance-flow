@@ -16,6 +16,8 @@ const Classes: React.FC = () => {
   const [showCustomLabelModal, setShowCustomLabelModal] = useState(false);
   const [pendingRecord, setPendingRecord] = useState<any>(null);
   const [showStudentManagementModal, setShowStudentManagementModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [classToDelete, setClassToDelete] = useState<string | null>(null);
   const [loadingAttendance, setLoadingAttendance] = useState<string | null>(null);
   const [attendanceError, setAttendanceError] = useState<string>('');
   const [formData, setFormData] = useState({
@@ -51,9 +53,21 @@ const Classes: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this class?')) {
-      deleteClass(id);
+    setClassToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (classToDelete) {
+      deleteClass(classToDelete);
     }
+    setShowDeleteModal(false);
+    setClassToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setClassToDelete(null);
   };
 
   const getStudentCount = (classId: string) => {
@@ -167,34 +181,52 @@ const Classes: React.FC = () => {
       : classStudents;
     
     return (
-      <div className="ml-64 p-6">
+      <div className="lg:ml-64 p-4 lg:p-6">
         <div className="mb-8">
-          <div className="flex items-center space-x-4 mb-4">
+          <div className="flex items-center space-x-2 lg:space-x-4 mb-4">
             <button
               onClick={handleBackToClasses}
-              className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 transition-colors duration-200"
+              className="flex items-center space-x-1 lg:space-x-2 text-blue-600 hover:text-blue-800 transition-colors duration-200 text-sm lg:text-base"
             >
               <ArrowLeft className="h-4 w-4" />
               <span>Back to Classes</span>
             </button>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Attendance - {currentClass?.name}</h1>
+          <h1 className="text-xl lg:text-3xl font-bold text-gray-900">Attendance - {currentClass?.name}</h1>
           <div className="mt-2">
             <p className="text-gray-600">
               {isStaffClass ? 'Mark staff attendance' : 'Mark student attendance for this class'}
             </p>
-            <div className="flex items-center space-x-4 mt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4 mt-2">
               <label className="text-sm font-medium text-gray-700">Teacher:</label>
               <select
                 value={currentClass?.teacherId || ''}
                 onChange={(e) => {
                   if (currentClass) {
-                    updateClass(currentClass.id, { teacherId: e.target.value });
+                    updateClass(currentClass.id, { teacherId: e.target.value === '' ? null : e.target.value });
                   }
                 }}
-                className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm w-full sm:w-auto"
               >
                 <option value="">Select a teacher</option>
+                {staff.map((staffMember) => (
+                  <option key={staffMember.id} value={staffMember.id}>
+                    {staffMember.firstName} {staffMember.lastName} - {staffMember.position}
+                  </option>
+                ))}
+              </select>
+              
+              <label className="text-sm font-medium text-gray-700">Assistant Teacher:</label>
+              <select
+                value={currentClass?.assistantTeacherId || ''}
+                onChange={(e) => {
+                  if (currentClass) {
+                    updateClass(currentClass.id, { assistantTeacherId: e.target.value === '' ? null : e.target.value });
+                  }
+                }}
+                className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm w-full sm:w-auto"
+              >
+                <option value="">Select an assistant teacher</option>
                 {staff.map((staffMember) => (
                   <option key={staffMember.id} value={staffMember.id}>
                     {staffMember.firstName} {staffMember.lastName} - {staffMember.position}
@@ -207,30 +239,31 @@ const Classes: React.FC = () => {
 
         {/* Date Filter */}
         <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between space-y-4 sm:space-y-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex items-center space-x-2 justify-center sm:justify-start">
               <Filter className="h-4 w-4 text-gray-400" />
               <span className="text-sm font-medium text-gray-700">Date:</span>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 justify-center sm:justify-start">
               <Calendar className="h-4 w-4 text-gray-400" />
               <input
                 type="date"
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
               />
             </div>
           </div>
             
             <button
               onClick={() => setShowStudentManagementModal(true)}
-              className={`${isStaffClass ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200`}
+              className={`${isStaffClass ? 'bg-purple-600 hover:bg-purple-700' : 'bg-green-600 hover:bg-green-700'} text-white px-3 lg:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 text-sm lg:text-base w-full sm:w-auto`}
             >
               <UserPlus className="h-4 w-4" />
-              <span>{isStaffClass ? 'Manage Staff' : 'Manage Students'}</span>
+              <span className="hidden sm:inline">{isStaffClass ? 'Manage Staff' : 'Manage Students'}</span>
+              <span className="sm:hidden">{isStaffClass ? 'Staff' : 'Students'}</span>
             </button>
           </div>
           
@@ -266,7 +299,7 @@ const Classes: React.FC = () => {
                 <div key={member.id} className="p-4 hover:bg-gray-50 transition-colors duration-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
-                      <div className={`w-10 h-10 ${isStaffClass ? 'bg-purple-500' : 'bg-blue-500'} rounded-full flex items-center justify-center`}>
+                      <div className={`w-16 h-16 ${isStaffClass ? 'bg-purple-500' : 'bg-blue-500'} rounded-full flex items-center justify-center`}>
                         {member.photoUrl ? (
                           <img
                             src={member.photoUrl}
@@ -274,7 +307,7 @@ const Classes: React.FC = () => {
                             className="w-full h-full rounded-full object-cover"
                           />
                         ) : (
-                          <span className="text-white font-medium text-sm">
+                          <span className="text-white font-medium text-lg">
                             {member.firstName[0]}{member.lastName[0]}
                           </span>
                         )}
@@ -293,7 +326,8 @@ const Classes: React.FC = () => {
                     </div>
                     
                     <div className="flex items-center space-x-2">
-                      <AttendanceButton
+                      <div className="flex flex-wrap gap-1 lg:gap-2">
+                        <AttendanceButton
                         status="present"
                         label="Present"
                         onClick={() => isStaffClass 
@@ -317,7 +351,6 @@ const Classes: React.FC = () => {
                           : handleAttendanceClick(member, 'present')
                         }
                         active={attendance?.status === 'present'}
-                        loading={loadingAttendance === `${member.id}-present`}
                         loading={loadingAttendance === `${member.id}-present`}
                       />
                       <AttendanceButton
@@ -345,7 +378,6 @@ const Classes: React.FC = () => {
                         }
                         active={attendance?.status === 'absent'}
                         loading={loadingAttendance === `${member.id}-absent`}
-                        loading={loadingAttendance === `${member.id}-absent`}
                       />
                       <AttendanceButton
                         status="tardy"
@@ -371,7 +403,6 @@ const Classes: React.FC = () => {
                           : handleAttendanceClick(member, 'tardy')
                         }
                         active={attendance?.status === 'tardy'}
-                        loading={loadingAttendance === `${member.id}-tardy`}
                         loading={loadingAttendance === `${member.id}-tardy`}
                       />
                       <AttendanceButton
@@ -399,7 +430,6 @@ const Classes: React.FC = () => {
                         }
                         active={attendance?.status === 'excused'}
                         loading={loadingAttendance === `${member.id}-excused`}
-                        loading={loadingAttendance === `${member.id}-excused`}
                       />
                       <AttendanceButton
                         status="other"
@@ -419,8 +449,8 @@ const Classes: React.FC = () => {
                         }
                         active={attendance?.status === 'other'}
                         loading={loadingAttendance === `${member.id}-other`}
-                        loading={loadingAttendance === `${member.id}-other`}
                       />
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -608,30 +638,59 @@ const Classes: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl w-full max-w-md">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Confirm Delete</h2>
+              
+              <p className="text-gray-700 mb-6">
+                Are you sure you want to delete this class?
+              </p>
+              
+              <div className="flex items-center justify-end space-x-3">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                >
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   // Default classes view
   return (
-    <div className="ml-64 p-6">
+    <div className="lg:ml-64 p-4 lg:p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Classes</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Classes</h1>
           <p className="text-gray-600 mt-2">Manage your class schedule and take attendance</p>
         </div>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-3 lg:px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200 text-sm lg:text-base"
         >
           <Plus className="h-4 w-4" />
-          <span>Add Class</span>
+          <span className="hidden sm:inline">Add Class</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
       {/* Search */}
       <div className="mb-6">
-        <div className="relative w-96">
+        <div className="relative w-full max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <input
             type="text"
@@ -644,7 +703,7 @@ const Classes: React.FC = () => {
       </div>
 
       {/* Classes Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {filteredClasses.map((cls) => (
           <div key={cls.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center justify-between mb-4">
@@ -748,6 +807,34 @@ const Classes: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Confirm Delete</h2>
+            
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete this class?
+            </p>
+            
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={handleDeleteCancel}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       )}

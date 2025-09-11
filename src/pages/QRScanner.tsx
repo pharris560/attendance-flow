@@ -67,10 +67,47 @@ const QRScanner: React.FC = () => {
       
     } catch (error) {
       console.error('Error starting camera:', error);
-      setCameraError(error instanceof Error ? error.message : 'Failed to start camera');
+      
+      let errorMessage = 'Failed to start camera';
+      let userMessage = 'Please try manual entry or check your camera setup.';
+      
+      if (error instanceof DOMException) {
+        switch (error.name) {
+          case 'NotFoundError':
+            errorMessage = 'No camera found';
+            userMessage = 'No camera device detected. Please connect a camera or use a device with a built-in camera.';
+            break;
+          case 'NotAllowedError':
+            errorMessage = 'Camera access denied';
+            userMessage = 'Camera permission was denied. Please allow camera access in your browser settings and try again.';
+            break;
+          case 'NotReadableError':
+            errorMessage = 'Camera is busy';
+            userMessage = 'Camera is being used by another application. Please close other apps using the camera and try again.';
+            break;
+          case 'OverconstrainedError':
+            errorMessage = 'Camera constraints not supported';
+            userMessage = 'Your camera doesn\'t support the required settings. Try using a different camera or device.';
+            break;
+          case 'SecurityError':
+            errorMessage = 'Camera access blocked';
+            userMessage = 'Camera access is blocked due to security settings. Please use HTTPS or check your browser security settings.';
+            break;
+          default:
+            errorMessage = error.message || 'Camera error';
+            userMessage = 'An unexpected camera error occurred. Please try refreshing the page or use manual entry.';
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+        if (error.message.includes('Camera not supported')) {
+          userMessage = 'Your browser doesn\'t support camera access. Please use a modern browser or try manual entry.';
+        }
+      }
+      
+      setCameraError(errorMessage);
       setScanResult({
         success: false,
-        message: `Camera Error: ${error instanceof Error ? error.message : 'Unknown error'}. Please check camera permissions or try manual entry.`
+        message: `${errorMessage}. ${userMessage}`
       });
     }
   };
@@ -98,31 +135,6 @@ const QRScanner: React.FC = () => {
       let personType: 'student' | 'staff';
       let qrInfo: any = null;
 
-      // Check if it's a full attendance URL
-      if (qrData.includes('/attendance-check')) {
-        try {
-          const url = new URL(qrData);
-          const urlParams = url.searchParams;
-          personType = urlParams.get('type') as 'student' | 'staff';
-          personId = urlParams.get('id') || '';
-          
-          if (!personType || !personId) {
-            throw new Error('Invalid attendance URL format. Missing type or id parameter.');
-          }
-          
-          qrInfo = {
-            type: personType,
-            id: personId,
-            name: urlParams.get('name') || '',
-            class: urlParams.get('class') || '',
-            timestamp: urlParams.get('timestamp') || new Date().toISOString()
-          };
-          
-          console.log('Parsed attendance URL:', qrInfo);
-        } catch (urlError) {
-          throw new Error('Invalid attendance URL format. Please copy the full URL from the QR Codes page.');
-        }
-      } else {
       try {
         // Try to parse as JSON first (new format)
         qrInfo = JSON.parse(qrData);
@@ -154,10 +166,9 @@ const QRScanner: React.FC = () => {
             console.log('Found staff by direct ID match:', personId);
           } else {
             console.error('QR code data not recognized:', qrData);
-            throw new Error(`Invalid QR code format. Expected:\n• Full attendance URL from QR Codes page\n• JSON format: {"type":"student","id":"uuid"}\n• Old format: "student:ID" or "staff:ID"\n• Valid UUID of existing student/staff`);
+            throw new Error(`Invalid QR code format. Expected:\n• JSON format: {"type":"student","id":"uuid"}\n• Old format: "student:ID" or "staff:ID"\n• Valid UUID of existing student/staff`);
           }
         }
-      }
       }
 
       // Find the person
@@ -238,16 +249,16 @@ const QRScanner: React.FC = () => {
   };
 
   return (
-    <div className="ml-64 p-6">
+    <div className="lg:ml-64 p-4 lg:p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">QR Code Scanner</h1>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">QR Code Scanner</h1>
         <p className="text-gray-600 mt-2">Scan QR codes to automatically mark attendance</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Scanner Section */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Camera Scanner</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 text-center">Camera Scanner</h2>
           
           <div className="space-y-4">
             {!isScanning ? (
@@ -313,12 +324,12 @@ const QRScanner: React.FC = () => {
               <textarea
                 value={manualId}
                 onChange={(e) => setManualId(e.target.value)}
-                placeholder='Paste the full attendance URL from QR Codes page, or JSON format like: {"type":"student","id":"uuid-here"}'
+                placeholder='Paste QR code data in JSON format like: {"type":"student","id":"uuid-here","name":"John Doe"}'
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-none"
                 onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleManualEntry()}
               />
               <p className="text-xs text-gray-500 mt-1">
-                Best: Copy the full attendance URL from the QR Codes page. Also accepts JSON format or valid UUIDs.
+                Accepts JSON format from QR codes or valid UUIDs.
               </p>
             </div>
             
@@ -411,7 +422,7 @@ const QRScanner: React.FC = () => {
 
       {/* Instructions */}
       <div className="mt-8 bg-blue-50 p-6 rounded-xl border border-blue-200">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">How to Use QR Scanner</h3>
+        <h3 className="text-lg font-semibold text-blue-900 mb-3">How to Use ACE Attendance QR Scanner</h3>
         <div className="space-y-2 text-sm text-blue-800">
           <p><strong>Camera Method:</strong> Click "Start Camera" and allow camera permissions. Position the QR code within the camera view for automatic detection.</p>
           <p><strong>Manual Method:</strong> Copy QR code data from the QR Codes page and paste it into the manual entry field.</p>

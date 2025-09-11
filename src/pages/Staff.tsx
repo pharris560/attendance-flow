@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, Edit2, Trash2, UserCheck, Upload, FileText, X } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
+import html2canvas from 'html2canvas';
 
 const Staff: React.FC = () => {
   const { staff, addStaff, updateStaff, deleteStaff } = useApp();
@@ -14,6 +15,8 @@ const Staff: React.FC = () => {
   const [csvPreview, setCsvPreview] = useState<any[]>([]);
   const [csvError, setCsvError] = useState<string>('');
   const [isProcessingCsv, setIsProcessingCsv] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [personToDelete, setPersonToDelete] = useState<any>(null);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -64,11 +67,166 @@ const Staff: React.FC = () => {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this staff member?')) {
-      deleteStaff(id).catch(error => {
+    const staffMember = staff.find(s => s.id === id);
+    setPersonToDelete(staffMember);
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (personToDelete) {
+      try {
+        await deleteStaff(personToDelete.id);
+      } catch (error) {
         console.error('Error deleting staff:', error);
         alert('Error deleting staff member. Please try again.');
+      }
+    }
+    setShowDeleteModal(false);
+    setPersonToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteModal(false);
+    setPersonToDelete(null);
+  };
+
+  const generateIDCard = async (staffMember: any) => {
+    // Create a temporary div for the ID card
+    const cardDiv = document.createElement('div');
+    cardDiv.style.width = '400px';
+    cardDiv.style.height = '250px';
+    cardDiv.style.backgroundColor = '#ffffff';
+    cardDiv.style.border = '2px solid #7C3AED';
+    cardDiv.style.borderRadius = '12px';
+    cardDiv.style.padding = '20px';
+    cardDiv.style.fontFamily = 'Arial, sans-serif';
+    cardDiv.style.position = 'absolute';
+    cardDiv.style.left = '-9999px';
+    cardDiv.style.display = 'flex';
+    cardDiv.style.flexDirection = 'column';
+    cardDiv.style.justifyContent = 'space-between';
+    
+    // Header
+    const header = document.createElement('div');
+    header.style.textAlign = 'center';
+    header.style.marginBottom = '15px';
+    header.innerHTML = `
+      <h2 style="margin: 0; color: #1F2937; font-size: 18px; font-weight: bold;">ACE Attendance</h2>
+      <p style="margin: 5px 0 0 0; color: #6B7280; font-size: 12px;">Staff ID Card</p>
+    `;
+    
+    // Main content
+    const content = document.createElement('div');
+    content.style.display = 'flex';
+    content.style.alignItems = 'center';
+    content.style.gap = '20px';
+    
+    // Photo section
+    const photoSection = document.createElement('div');
+    photoSection.style.flexShrink = '0';
+    
+    if (staffMember.photoUrl) {
+      const img = document.createElement('img');
+      img.src = staffMember.photoUrl;
+      img.style.width = '80px';
+      img.style.height = '80px';
+      img.style.borderRadius = '50%';
+      img.style.objectFit = 'cover';
+      img.style.border = '2px solid #E5E7EB';
+      photoSection.appendChild(img);
+    } else {
+      const placeholder = document.createElement('div');
+      placeholder.style.width = '80px';
+      placeholder.style.height = '80px';
+      placeholder.style.borderRadius = '50%';
+      placeholder.style.backgroundColor = '#7C3AED';
+      placeholder.style.display = 'flex';
+      placeholder.style.alignItems = 'center';
+      placeholder.style.justifyContent = 'center';
+      placeholder.style.color = 'white';
+      placeholder.style.fontSize = '24px';
+      placeholder.style.fontWeight = 'bold';
+      placeholder.textContent = `${staffMember.firstName[0]}${staffMember.lastName[0]}`;
+      photoSection.appendChild(placeholder);
+    }
+    
+    // Info section
+    const infoSection = document.createElement('div');
+    infoSection.style.flex = '1';
+    infoSection.innerHTML = `
+      <h3 style="margin: 0 0 8px 0; color: #1F2937; font-size: 20px; font-weight: bold;">${staffMember.firstName} ${staffMember.lastName}</h3>
+      <p style="margin: 0 0 4px 0; color: #7C3AED; font-size: 14px; font-weight: 600;">${staffMember.position}</p>
+      <p style="margin: 0 0 4px 0; color: #6B7280; font-size: 12px;">${staffMember.department}</p>
+      <p style="margin: 0; color: #6B7280; font-size: 12px;">Staff ID: ${staffMember.id.substring(0, 8)}</p>
+    `;
+    
+    // QR Code section
+    const qrSection = document.createElement('div');
+    qrSection.style.flexShrink = '0';
+    qrSection.style.textAlign = 'center';
+    
+    if (staffMember.qrCode && staffMember.qrCode.startsWith('data:image')) {
+      const qrImg = document.createElement('img');
+      qrImg.src = staffMember.qrCode;
+      qrImg.style.width = '60px';
+      qrImg.style.height = '60px';
+      qrImg.style.border = '1px solid #E5E7EB';
+      qrImg.style.borderRadius = '4px';
+      qrSection.appendChild(qrImg);
+      
+      const qrLabel = document.createElement('p');
+      qrLabel.style.margin = '4px 0 0 0';
+      qrLabel.style.fontSize = '10px';
+      qrLabel.style.color = '#6B7280';
+      qrLabel.textContent = 'Scan for Attendance';
+      qrSection.appendChild(qrLabel);
+    }
+    
+    content.appendChild(photoSection);
+    content.appendChild(infoSection);
+    content.appendChild(qrSection);
+    
+    // Footer
+    const footer = document.createElement('div');
+    footer.style.textAlign = 'center';
+    footer.style.marginTop = '15px';
+    footer.style.paddingTop = '10px';
+    footer.style.borderTop = '1px solid #E5E7EB';
+    footer.innerHTML = `
+      <p style="margin: 0; color: #9CA3AF; font-size: 10px;">Generated on ${new Date().toLocaleDateString()}</p>
+    `;
+    
+    cardDiv.appendChild(header);
+    cardDiv.appendChild(content);
+    cardDiv.appendChild(footer);
+    
+    // Add to DOM temporarily
+    document.body.appendChild(cardDiv);
+    
+    try {
+      // Wait a bit for images to load
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Generate canvas
+      const canvas = await html2canvas(cardDiv, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
       });
+      
+      // Download the image
+      const link = document.createElement('a');
+      link.download = `${staffMember.firstName}_${staffMember.lastName}_ID_Card.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+    } catch (error) {
+      console.error('Error generating ID card:', error);
+      alert('Error generating ID card. Please try again.');
+    } finally {
+      // Remove temporary element
+      document.body.removeChild(cardDiv);
     }
   };
 
@@ -190,32 +348,34 @@ const Staff: React.FC = () => {
   };
 
   return (
-    <div className="ml-64 p-6">
+    <div className="lg:ml-64 p-4 lg:p-6">
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Staff</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Staff</h1>
           <p className="text-gray-600 mt-2">Manage your staff members and their attendance</p>
         </div>
-        <div className="flex items-center space-x-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
           <button
             onClick={() => setShowCsvModal(true)}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+            className="bg-green-600 hover:bg-green-700 text-white px-3 lg:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 text-sm lg:text-base"
           >
             <Upload className="h-4 w-4" />
-            <span>Import CSV</span>
+            <span className="hidden sm:inline">Import CSV</span>
+            <span className="sm:hidden">Import</span>
           </button>
           <button
             onClick={() => setShowModal(true)}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-3 lg:px-4 py-2 rounded-lg flex items-center justify-center space-x-2 transition-colors duration-200 text-sm lg:text-base"
           >
             <Plus className="h-4 w-4" />
-            <span>Add Staff Member</span>
+            <span className="hidden sm:inline">Add Staff Member</span>
+            <span className="sm:hidden">Add Staff</span>
           </button>
         </div>
       </div>
 
       {/* Search */}
-      <div className="mb-6 flex items-center space-x-4">
+      <div className="mb-6 flex flex-col sm:flex-row items-stretch sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <input
@@ -230,7 +390,7 @@ const Staff: React.FC = () => {
         <select
           value={selectedPosition}
           onChange={(e) => setSelectedPosition(e.target.value)}
-          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
         >
           <option value="">All Positions</option>
           {positions.map((position) => (
@@ -240,11 +400,11 @@ const Staff: React.FC = () => {
       </div>
 
       {/* Staff Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
         {finalFilteredStaff.map((staffMember) => (
           <div key={staffMember.id} className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
             <div className="text-center mb-4">
-              <div className="w-20 h-20 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-32 h-32 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
                 {staffMember.photoUrl ? (
                   <img
                     src={staffMember.photoUrl}
@@ -252,7 +412,7 @@ const Staff: React.FC = () => {
                     className="w-full h-full rounded-full object-cover"
                   />
                 ) : (
-                  <UserCheck className="h-6 w-6 text-white" />
+                  <UserCheck className="h-10 w-10 text-white" />
                 )}
               </div>
               <div className="flex items-center justify-center space-x-2">
@@ -277,6 +437,35 @@ const Staff: React.FC = () => {
             <p className="text-sm text-purple-600 font-medium mb-1 text-center">{staffMember.position}</p>
             <p className="text-sm text-gray-500 mb-3 text-center">{staffMember.department}</p>
             
+            {/* QR Code Section */}
+            <div className="border-t border-gray-200 pt-4">
+              <div className="text-center">
+                <p className="text-xs font-medium text-gray-700 mb-2">QR Code</p>
+                {staffMember.qrCode && staffMember.qrCode.startsWith('data:image') ? (
+                  <div className="flex flex-col items-center space-y-2">
+                    <img
+                      src={staffMember.qrCode}
+                      alt={`QR Code for ${staffMember.firstName} ${staffMember.lastName}`}
+                      className="w-20 h-20 border border-gray-200 rounded object-contain bg-white"
+                    />
+                    <button
+                      onClick={() => {
+                        generateIDCard(staffMember);
+                      }}
+                      className="text-xs bg-purple-100 hover:bg-purple-200 text-purple-700 px-2 py-1 rounded transition-colors duration-200 font-medium"
+                    >
+                      Download ID Card
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-20 h-20 border-2 border-dashed border-gray-300 rounded flex items-center justify-center mx-auto">
+                    <div className="text-center">
+                      <div className="text-gray-400 text-xs">Generating...</div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -512,6 +701,34 @@ const Staff: React.FC = () => {
                   )}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && personToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-full max-w-md">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Confirm Delete</h2>
+            
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete this staff member?
+            </p>
+            
+            <div className="flex items-center justify-end space-x-3">
+              <button
+                onClick={handleDeleteCancel}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

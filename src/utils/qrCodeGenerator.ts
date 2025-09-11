@@ -7,12 +7,32 @@ export const generateQRCodeURL = async (
   classOrDepartment: string
 ): Promise<string> => {
   try {
-    // Generate QR code with URL that will auto-mark attendance
-    const timestamp = new Date().toISOString();
+    // Get the base URL - use environment variable or current domain
+    let baseUrl = '';
     
-    // Create URL with attendance parameters
-    const baseUrl = window.location.origin;
-    const attendanceUrl = `${baseUrl}/attendance-check?type=${personType}&id=${personId}&name=${encodeURIComponent(personName)}&class=${encodeURIComponent(classOrDepartment)}&timestamp=${encodeURIComponent(timestamp)}`;
+    if (typeof window !== 'undefined') {
+      // Check if we have a production URL set
+      const productionUrl = import.meta.env.VITE_APP_URL;
+      
+      if (productionUrl) {
+        baseUrl = productionUrl;
+      } else {
+        // Fallback to current domain, but handle development environments
+        const currentHost = window.location.host;
+        
+        if (currentHost.includes('webcontainer-api.io') || currentHost.includes('localhost')) {
+          // For development, use a placeholder that will be replaced
+          baseUrl = 'https://attendanceai.app'; // Your actual domain
+        } else {
+          baseUrl = `${window.location.protocol}//${window.location.host}`;
+        }
+      }
+    }
+    
+    // Create URL with query parameters for attendance check
+    const attendanceUrl = `${baseUrl}/attendance-check?type=${encodeURIComponent(personType)}&id=${encodeURIComponent(personId)}&name=${encodeURIComponent(personName)}&class=${encodeURIComponent(classOrDepartment)}&timestamp=${encodeURIComponent(new Date().toISOString())}`;
+    
+    console.log('Generated QR code URL:', attendanceUrl);
     
     const qrCodeDataURL = await QRCode.toDataURL(attendanceUrl, {
       width: 200,
@@ -20,7 +40,8 @@ export const generateQRCodeURL = async (
       color: {
         dark: '#000000',
         light: '#FFFFFF'
-      }
+      },
+      errorCorrectionLevel: 'H' // Higher error correction for better mobile scanning
     });
     return qrCodeDataURL;
   } catch (error) {

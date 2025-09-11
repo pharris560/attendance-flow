@@ -10,9 +10,27 @@ const Dashboard: React.FC = () => {
   const totalStudents = students.length;
   const totalStaff = staff.length;
   const totalClasses = classes.length;
-  const todayAttendance = attendanceRecords.filter(record => 
+  
+  // Get today's attendance records
+  const todayRecords = attendanceRecords.filter(record => 
     new Date(record.date).toDateString() === new Date().toDateString()
+  );
+  
+  // Count students present today (only student records)
+  const todayStudentRecords = todayRecords.filter(record => record.type === 'student');
+  const todayPresentStudents = todayStudentRecords.filter(record => 
+    record.type === 'student' && record.status === 'present'
   ).length;
+  
+  // Get unique students who had attendance taken today
+  const studentsWithAttendanceToday = new Set(
+    todayStudentRecords.map(record => record.studentId)
+  ).size;
+  
+  // Calculate attendance rate for today
+  const todayAttendanceRate = studentsWithAttendanceToday > 0 
+    ? Math.round((todayPresentStudents / studentsWithAttendanceToday) * 100)
+    : 0;
 
   // Attendance data for charts
   const attendanceByStatus = [
@@ -48,7 +66,7 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <div className="ml-64 p-6">
+    <div className="lg:ml-64 p-4 lg:p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-2">Overview of your attendance management system</p>
@@ -56,17 +74,36 @@ const Dashboard: React.FC = () => {
 
       {/* Attendance Distribution Chart */}
       <div className="mb-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-2xl mx-auto">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Attendance Distribution</h2>
-          <ResponsiveContainer width="100%" height={300}>
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-4xl mx-auto">
+          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6 text-center">Attendance Distribution</h2>
+          
+          {/* Legend at top for mobile */}
+          <div className="mb-6 flex flex-wrap justify-center gap-2 lg:hidden">
+            {attendanceByStatus.filter(item => item.value > 0).map((item) => (
+              <div key={item.name} className="flex items-center space-x-2 text-base font-medium">
+                <div 
+                  className="w-3 h-3 rounded-full" 
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-gray-700">{item.name}: {item.value}</span>
+              </div>
+            ))}
+          </div>
+          
+          <div className="flex justify-center">
+            <ResponsiveContainer width="100%" height={500}>
             <PieChart>
               <Pie
                 data={attendanceByStatus}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                outerRadius={80}
+                label={({ name, percent, value }) => {
+                  // Only show labels on desktop
+                  if (window.innerWidth < 1024) return '';
+                  return percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : '';
+                }}
+                outerRadius={150}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -77,11 +114,25 @@ const Dashboard: React.FC = () => {
               <Tooltip />
             </PieChart>
           </ResponsiveContainer>
+          </div>
+          
+          {/* Legend at bottom for desktop */}
+          <div className="mt-6 hidden lg:flex flex-wrap justify-center gap-4">
+            {attendanceByStatus.filter(item => item.value > 0).map((item) => (
+              <div key={item.name} className="flex items-center space-x-2 text-lg font-medium">
+                <div 
+                  className="w-4 h-4 rounded-full" 
+                  style={{ backgroundColor: item.color }}
+                />
+                <span className="text-gray-700">{item.name}: {item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
         <StatCard 
           title="Total Students" 
           value={totalStudents.toString()} 
@@ -96,13 +147,13 @@ const Dashboard: React.FC = () => {
         />
         <StatCard 
           title="Today's Attendance" 
-          value={todayAttendance.toString()} 
+          value={`${todayPresentStudents}/${studentsWithAttendanceToday}`} 
           icon={Calendar} 
-          color="bg-purple-500"
+          color="bg-green-500"
         />
         <StatCard 
           title="Attendance Rate" 
-          value="92%" 
+          value={`${todayAttendanceRate}%`} 
           icon={TrendingUp} 
           color="bg-orange-500"
         />
@@ -111,7 +162,7 @@ const Dashboard: React.FC = () => {
       {/* Class-specific Pie Charts */}
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Class Attendance Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
           {classes.map((cls) => {
             const classRecords = attendanceRecords.filter(record => record.classId === cls.id);
             const classStudents = students.filter(student => student.classId === cls.id);
@@ -193,7 +244,7 @@ const Dashboard: React.FC = () => {
                       
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         {pieData.filter(item => item.value > 0).map((item) => (
-                          <div key={item.name} className="flex items-center space-x-1">
+                          <div key={item.name} className="flex items-center space-x-1 text-sm font-medium">
                             <div 
                               className="w-3 h-3 rounded-full" 
                               style={{ backgroundColor: item.color }}

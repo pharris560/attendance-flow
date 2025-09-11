@@ -1,32 +1,22 @@
 [build]
-  command = "npm ci && npm run build"
   publish = "dist"
+  command = "npm ci && npm run build"
 
 [build.environment]
   NODE_VERSION = "20"
+  NPM_VERSION = "10"
 
-# SPA history fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+  force = true
 
-# Make sure browsers always fetch fresh HTML (prevents old builds sticking)
-[[headers]]
-  for = "/index.html"
-  [headers.values]
-    Cache-Control = "no-cache, no-store, must-revalidate"
+[context.production.environment]
+  NODE_ENV = "production"
 
-# Let static assets be aggressively cached (Vite hashes them)
-[[headers]]
-  for = "/assets/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+[context.deploy-preview.environment]
+  NODE_ENV = "production"
 
-# Easy way to confirm what commit is live
-[[headers]]
-  for = "/*"
-  [headers.values]
-    x-commit-ref = "$COMMIT_REF"
-
-
+[context.branch-deploy.environment]
+  NODE_ENV = "production"

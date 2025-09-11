@@ -19,6 +19,7 @@ interface AppContextType {
   deleteClass: (id: string) => Promise<void>;
   markAttendance: (record: Omit<AttendanceRecord, 'id' | 'timestamp'>) => Promise<void>;
   loading: boolean;
+  error: string | null;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -41,6 +42,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Load data from Supabase
   useEffect(() => {
@@ -50,89 +52,118 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
       
-      console.log('Loading data from Supabase...');
+      console.log('🚀 ACE Attendance: Starting data load...');
+      console.log('Supabase client available:', !!supabase);
       
-      // Load classes first (needed for students foreign key)
-      const { data: classesData, error: classesError } = await supabase
-        .from('classes')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (classesError) {
-        console.error('Error loading classes:', classesError);
-        throw classesError;
-      }
-
-      // Load students
-      const { data: studentsData, error: studentsError } = await supabase
-        .from('students')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (studentsError) {
-        console.error('Error loading students:', studentsError);
-        throw studentsError;
-      }
-
-      // Load staff
-      const { data: staffData, error: staffError } = await supabase
-        .from('staff')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (staffError) {
-        console.error('Error loading staff:', staffError);
-        throw staffError;
-      }
-
-      // Load attendance records
-      const { data: attendanceData, error: attendanceError } = await supabase
-        .from('attendance_records')
-        .select('*')
-        .order('timestamp', { ascending: false });
-
-      if (attendanceError) {
-        console.error('Error loading attendance records:', attendanceError);
-        throw attendanceError;
-      }
-
-      // If no data exists, add sample data for testing
-      if (classesData.length === 0 && studentsData.length === 0 && staffData.length === 0) {
+      // Check if Supabase is configured
+      if (!supabase) {
+        console.warn('⚠️  DEMO MODE: Supabase not configured - using sample data');
+        console.warn('To use real database, set environment variables:');
+        console.warn('- VITE_SUPABASE_URL');
+        console.warn('- VITE_SUPABASE_ANON_KEY');
         await addSampleData();
-      } else {
-        setClasses(classesData);
-        setStudents(studentsData.map(student => ({
-          id: student.id,
-          firstName: student.first_name,
-          lastName: student.last_name,
-          classId: student.class_id,
-          photoUrl: student.photo_url,
-          qrCode: student.qr_code,
-          createdAt: new Date(student.created_at)
-        })));
-        setStaff(staffData.map(staff => ({
-          id: staff.id,
-          firstName: staff.first_name,
-          lastName: staff.last_name,
-          department: staff.department,
-          position: staff.position,
-          photoUrl: staff.photo_url,
-          qrCode: staff.qr_code,
-          createdAt: new Date(staff.created_at)
-        })));
-        setAttendanceRecords(attendanceData);
+        setLoading(false);
+        return;
       }
       
-      // Check if any students or staff are missing QR codes and generate them
-      const studentsNeedingQR = studentsData.filter(student => !student.qr_code);
-      const staffNeedingQR = staffData.filter(staff => !staff.qr_code);
+      console.log('✅ Loading data from Supabase...');
       
-      // Force regenerate ALL QR codes to ensure they have the correct format
-      console.log('Force regenerating QR codes for all users to ensure correct format');
-      await generateMissingQRCodes(studentsData, staffData, classesData);
+      try {
+        // Load classes first (needed for students foreign key)
+        const { data: classesData, error: classesError } = await supabase
+          .from('classes')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (classesError) {
+          console.error('Error loading classes:', classesError);
+          throw classesError;
+        }
+
+        // Load students
+        const { data: studentsData, error: studentsError } = await supabase
+          .from('students')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (studentsError) {
+          console.error('Error loading students:', studentsError);
+          throw studentsError;
+        }
+
+        // Load staff
+        const { data: staffData, error: staffError } = await supabase
+          .from('staff')
+          .select('*')
+          .order('created_at', { ascending: true });
+
+        if (staffError) {
+          console.error('Error loading staff:', staffError);
+          throw staffError;
+        }
+
+        // Load attendance records
+        const { data: attendanceData, error: attendanceError } = await supabase
+          .from('attendance_records')
+          .select('*')
+          .order('timestamp', { ascending: false });
+
+        if (attendanceError) {
+          console.error('Error loading attendance records:', attendanceError);
+          throw attendanceError;
+        }
+
+        // If no data exists, add sample data for testing
+        if (classesData.length === 0 && studentsData.length === 0 && staffData.length === 0) {
+          console.log('🎯 No data found in Supabase, loading sample data...');
+          await addSampleData();
+        } else {
+          setClasses(classesData);
+          setStudents(studentsData.map(student => ({
+            id: student.id,
+            firstName: student.first_name,
+            lastName: student.last_name,
+            classId: student.class_id,
+            photoUrl: student.photo_url,
+            qrCode: student.qr_code,
+            createdAt: new Date(student.created_at)
+          })));
+          setStaff(staffData.map(staff => ({
+            id: staff.id,
+            firstName: staff.first_name,
+            lastName: staff.last_name,
+            department: staff.department,
+            position: staff.position,
+            photoUrl: staff.photo_url,
+            qrCode: staff.qr_code,
+            createdAt: new Date(staff.created_at)
+          })));
+          setAttendanceRecords(attendanceData);
+          
+          // Check if any students or staff are missing QR codes and generate them
+          const studentsNeedingQR = studentsData.filter(student => !student.qr_code);
+          const staffNeedingQR = staffData.filter(staff => !staff.qr_code);
+          
+          if (studentsNeedingQR.length > 0 || staffNeedingQR.length > 0) {
+            console.log('🔄 Generating missing QR codes...');
+            await generateMissingQRCodes(studentsNeedingQR, staffNeedingQR, classesData);
+          }
+        }
+        
+        console.log('✅ Data loaded successfully from Supabase');
+      } catch (supabaseError) {
+        console.error('❌ Supabase connection failed, falling back to demo mode:', supabaseError);
+        console.log('🎯 Loading sample data for demo mode...');
+        await addSampleData();
+      }
     } catch (error) {
       console.error('Error loading data:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load data');
+      // Fallback to demo mode if anything fails
+      console.log('🎯 Fallback: Loading sample data for demo mode...');
+      await addSampleData();
     } finally {
       setLoading(false);
     }
@@ -147,7 +178,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         const className = classesData.find(c => c.id === student.class_id)?.name || 'No Class';
         const qrCode = await generateQRCodeURL(student.id, 'student', studentName, className);
         console.log('Generated QR code for student:', student.id, qrCode ? 'Success' : 'Failed');
-        await supabase
+        await supabase!
           .from('students')
           .update({ qr_code: qrCode })
           .eq('id', student.id);
@@ -165,7 +196,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         const department = staffMember.department;
         const qrCode = await generateQRCodeURL(staffMember.id, 'staff', staffName, department);
         console.log('Generated QR code for staff:', staffMember.id, qrCode ? 'Success' : 'Failed');
-        await supabase
+        await supabase!
           .from('staff')
           .update({ qr_code: qrCode })
           .eq('id', staffMember.id);
@@ -182,61 +213,156 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const addSampleData = async () => {
     try {
+      console.log('🎯 ACE Attendance: Loading sample data for demo mode...');
+      
       // Add sample classes
       const sampleClasses = [
-        { name: 'Mathematics 101', description: 'Basic Mathematics', teacherId: 'teacher1' },
-        { name: 'English Literature', description: 'Classic Literature Studies', teacherId: 'teacher2' },
-        { name: 'Science Lab', description: 'Experimental Science', teacherId: 'teacher3' }
+        { id: 'class1', name: 'Mathematics 101', description: 'Basic Mathematics', teacherId: 'teacher1', createdAt: new Date() },
+        { id: 'class2', name: 'English Literature', description: 'Classic Literature Studies', teacherId: 'teacher2', createdAt: new Date() },
+        { id: 'class3', name: 'Science Lab', description: 'Experimental Science', teacherId: 'teacher3', createdAt: new Date() },
+        { id: 'staff-class', name: 'Staff', description: 'Staff Management', teacherId: 'admin1', createdAt: new Date() }
       ];
 
-      const classPromises = sampleClasses.map(cls => addClass(cls));
-      await Promise.all(classPromises);
-
-      // Wait a bit for classes to be created
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Reload classes to get IDs
-      const { data: newClassesData } = await supabase
-        .from('classes')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (newClassesData && newClassesData.length > 0) {
-        // Add sample students
-        const sampleStudents = [
-          { firstName: 'John', lastName: 'Smith', classId: newClassesData[0].id },
-          { firstName: 'Emma', lastName: 'Johnson', classId: newClassesData[0].id },
-          { firstName: 'Michael', lastName: 'Brown', classId: newClassesData[1].id },
-          { firstName: 'Sarah', lastName: 'Davis', classId: newClassesData[1].id },
-          { firstName: 'David', lastName: 'Wilson', classId: newClassesData[2].id },
-          { firstName: 'Lisa', lastName: 'Anderson', classId: newClassesData[2].id }
-        ];
-
-        const studentPromises = sampleStudents.map(student => addStudent(student));
-        await Promise.all(studentPromises);
-
-        // Add sample staff
-        const sampleStaff = [
-          { firstName: 'Robert', lastName: 'Thompson', department: 'Mathematics', position: 'Teacher' },
-          { firstName: 'Jennifer', lastName: 'Garcia', department: 'English', position: 'Teacher' },
-          { firstName: 'William', lastName: 'Martinez', department: 'Science', position: 'Lab Coordinator' },
-          { firstName: 'Mary', lastName: 'Rodriguez', department: 'Administration', position: 'Principal' },
-          { firstName: 'James', lastName: 'Lopez', department: 'Administration', position: 'Vice Principal' }
-        ];
-
-        const staffPromises = sampleStaff.map(staff => addStaff(staff));
-        await Promise.all(staffPromises);
+      setClasses(sampleClasses);
+      console.log('✅ Sample classes loaded:', sampleClasses.length);
+      
+      // Add sample students with QR codes
+      console.log('🔄 Generating QR codes for sample students...');
+      const sampleStudents: Student[] = [];
+      
+      const studentData = [
+        { id: 'student1', firstName: 'John', lastName: 'Smith', classId: 'class1', className: 'Mathematics 101' },
+        { id: 'student2', firstName: 'Emma', lastName: 'Johnson', classId: 'class1', className: 'Mathematics 101' },
+        { id: 'student3', firstName: 'Michael', lastName: 'Brown', classId: 'class2', className: 'English Literature' },
+        { id: 'student4', firstName: 'Sarah', lastName: 'Davis', classId: 'class2', className: 'English Literature' },
+        { id: 'student5', firstName: 'David', lastName: 'Wilson', classId: 'class3', className: 'Science Lab' },
+        { id: 'student6', firstName: 'Lisa', lastName: 'Anderson', classId: 'class3', className: 'Science Lab' }
+      ];
+      
+      for (const student of studentData) {
+        try {
+          const qrCode = await generateQRCodeURL(student.id, 'student', `${student.firstName} ${student.lastName}`, student.className);
+          sampleStudents.push({
+            id: student.id,
+            firstName: student.firstName,
+            lastName: student.lastName,
+            classId: student.classId,
+            photoUrl: null,
+            qrCode,
+            createdAt: new Date()
+          });
+        } catch (error) {
+          console.error(`Error generating QR code for ${student.firstName} ${student.lastName}:`, error);
+          // Add student without QR code if generation fails
+          sampleStudents.push({
+            id: student.id,
+            firstName: student.firstName,
+            lastName: student.lastName,
+            classId: student.classId,
+            photoUrl: null,
+            qrCode: '',
+            createdAt: new Date()
+          });
+        }
       }
+      
+      setStudents(sampleStudents);
+      console.log('✅ Sample students loaded:', sampleStudents.length);
 
-      // Reload all data after adding samples
-      await loadData();
+      // Add sample staff with QR codes
+      console.log('🔄 Generating QR codes for sample staff...');
+      const sampleStaff: Staff[] = [];
+      
+      const staffData = [
+        { id: 'staff1', firstName: 'Robert', lastName: 'Thompson', department: 'Mathematics', position: 'Teacher' },
+        { id: 'staff2', firstName: 'Jennifer', lastName: 'Garcia', department: 'English', position: 'Teacher' },
+        { id: 'staff3', firstName: 'William', lastName: 'Martinez', department: 'Science', position: 'Lab Coordinator' },
+        { id: 'staff4', firstName: 'Mary', lastName: 'Rodriguez', department: 'Administration', position: 'Principal' },
+        { id: 'staff5', firstName: 'James', lastName: 'Lopez', department: 'Administration', position: 'Vice Principal' }
+      ];
+      
+      for (const staff of staffData) {
+        try {
+          const qrCode = await generateQRCodeURL(staff.id, 'staff', `${staff.firstName} ${staff.lastName}`, staff.department);
+          sampleStaff.push({
+            id: staff.id,
+            firstName: staff.firstName,
+            lastName: staff.lastName,
+            department: staff.department,
+            position: staff.position,
+            photoUrl: null,
+            qrCode,
+            createdAt: new Date()
+          });
+        } catch (error) {
+          console.error(`Error generating QR code for ${staff.firstName} ${staff.lastName}:`, error);
+          // Add staff without QR code if generation fails
+          sampleStaff.push({
+            id: staff.id,
+            firstName: staff.firstName,
+            lastName: staff.lastName,
+            department: staff.department,
+            position: staff.position,
+            photoUrl: null,
+            qrCode: '',
+            createdAt: new Date()
+          });
+        }
+      }
+      
+      setStaff(sampleStaff);
+      console.log('✅ Sample staff loaded:', sampleStaff.length);
+      
+      // Add some sample attendance records
+      const sampleAttendance: AttendanceRecord[] = [
+        { id: 'att1', studentId: 'student1', staffId: null, classId: 'class1', department: null, status: 'present', customLabel: null, date: new Date(), timestamp: new Date(), type: 'student' },
+        { id: 'att2', studentId: 'student2', staffId: null, classId: 'class1', department: null, status: 'present', customLabel: null, date: new Date(), timestamp: new Date(), type: 'student' },
+        { id: 'att3', studentId: 'student3', staffId: null, classId: 'class2', department: null, status: 'absent', customLabel: null, date: new Date(), timestamp: new Date(), type: 'student' },
+        { id: 'att4', studentId: 'student4', staffId: null, classId: 'class2', department: null, status: 'tardy', customLabel: null, date: new Date(), timestamp: new Date(), type: 'student' },
+        { id: 'att5', studentId: 'student5', staffId: null, classId: 'class3', department: null, status: 'present', customLabel: null, date: new Date(), timestamp: new Date(), type: 'student' },
+        { id: 'att6', staffId: 'staff1', studentId: null, classId: null, department: 'Mathematics', status: 'present', customLabel: null, date: new Date(), timestamp: new Date(), type: 'staff' },
+        { id: 'att7', staffId: 'staff2', studentId: null, classId: null, department: 'English', status: 'present', customLabel: null, date: new Date(), timestamp: new Date(), type: 'staff' },
+        { id: 'att8', staffId: 'staff3', studentId: null, classId: null, department: 'Science', status: 'excused', customLabel: 'Training', date: new Date(), timestamp: new Date(), type: 'staff' }
+      ];
+      
+      setAttendanceRecords(sampleAttendance);
+      console.log('✅ Sample attendance records loaded:', sampleAttendance.length);
+      
+      console.log('✅ Sample data loaded successfully - ACE Attendance ready in demo mode');
     } catch (error) {
       console.error('Error adding sample data:', error);
+      // Even if QR code generation fails, still set basic data
+      console.log('⚠️ Setting basic sample data without QR codes...');
+      
+      const basicClasses = [
+        { id: 'class1', name: 'Mathematics 101', description: 'Basic Mathematics', teacherId: 'teacher1', createdAt: new Date() },
+        { id: 'class2', name: 'English Literature', description: 'Classic Literature Studies', teacherId: 'teacher2', createdAt: new Date() }
+      ];
+      
+      const basicStudents = [
+        { id: 'student1', firstName: 'John', lastName: 'Smith', classId: 'class1', photoUrl: null, qrCode: '', createdAt: new Date() },
+        { id: 'student2', firstName: 'Emma', lastName: 'Johnson', classId: 'class1', photoUrl: null, qrCode: '', createdAt: new Date() }
+      ];
+      
+      const basicStaff = [
+        { id: 'staff1', firstName: 'Robert', lastName: 'Thompson', department: 'Mathematics', position: 'Teacher', photoUrl: null, qrCode: '', createdAt: new Date() }
+      ];
+      
+      setClasses(basicClasses);
+      setStudents(basicStudents);
+      setStaff(basicStaff);
+      setAttendanceRecords([]);
+      
+      console.log('✅ Basic sample data loaded as fallback');
     }
   };
 
   const addStudent = async (studentData: Omit<Student, 'id' | 'qrCode' | 'createdAt'>, photoFile?: File) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
       console.log('Adding student:', studentData, 'with photo:', !!photoFile);
       const { data, error } = await supabase
         .from('students')
@@ -297,6 +423,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateStudent = async (id: string, studentData: Partial<Student>, photoFile?: File) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
       let photoUrl = studentData.photoUrl;
       
       if (photoFile) {
@@ -342,6 +472,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const deleteStudent = async (id: string) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
       // Delete photo if exists
       const student = students.find(s => s.id === id);
       if (student?.photoUrl) {
@@ -365,6 +499,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const addStaff = async (staffData: Omit<Staff, 'id' | 'qrCode' | 'createdAt'>, photoFile?: File) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
       console.log('Adding staff:', staffData, 'with photo:', !!photoFile);
       const { data, error } = await supabase
         .from('staff')
@@ -427,6 +565,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const updateStaff = async (id: string, staffData: Partial<Staff>, photoFile?: File) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
       let photoUrl = staffData.photoUrl;
       
       if (photoFile) {
@@ -473,6 +615,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const deleteStaff = async (id: string) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
       // Delete photo if exists
       const staffMember = staff.find(s => s.id === id);
       if (staffMember?.photoUrl) {
@@ -496,6 +642,14 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const addClass = async (classData: Omit<Class, 'id' | 'createdAt'>) => {
     try {
+      console.log('🏫 Adding class:', classData);
+      
+      if (!supabase) {
+        console.error('❌ Supabase client not available');
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
+      console.log('📤 Sending request to Supabase...');
       const { data, error } = await supabase
         .from('classes')
         .insert([{
@@ -506,6 +660,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         .select()
         .single();
 
+      console.log('📥 Supabase response:', { data, error });
+      
       if (error) throw error;
 
       const newClass: Class = {
@@ -516,15 +672,24 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         createdAt: new Date(data.created_at)
       };
 
+      console.log('✅ New class created successfully:', newClass);
       setClasses(prev => [...prev, newClass]);
     } catch (error) {
       console.error('Error adding class:', error);
+      
+      // Show user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to add class: ${errorMessage}\n\nPlease check the browser console for more details.`);
       throw error;
     }
   };
 
   const updateClass = async (id: string, classData: Partial<Class>) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
       const updateData: any = {};
       if (classData.name) updateData.name = classData.name;
       if (classData.description) updateData.description = classData.description;
@@ -548,6 +713,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const deleteClass = async (id: string) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available. Please check your environment variables.');
+      }
+      
       const { error } = await supabase
         .from('classes')
         .delete()
@@ -568,6 +737,10 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const markAttendance = async (recordData: Omit<AttendanceRecord, 'id' | 'timestamp'>) => {
     try {
+      if (!supabase) {
+        throw new Error('Database connection not available');
+      }
+      
       console.log('Marking attendance:', recordData);
       const recordDate = recordData.date.toISOString().split('T')[0];
       console.log('Record date:', recordDate);
@@ -672,6 +845,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       deleteClass,
       markAttendance,
       loading,
+      error,
     }}>
       {children}
     </AppContext.Provider>

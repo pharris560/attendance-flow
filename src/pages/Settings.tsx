@@ -55,17 +55,17 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <div className="ml-64 p-6">
+    <div className="lg:ml-64 p-4 lg:p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Settings</h1>
         <p className="text-gray-600 mt-2">Manage your account and application preferences</p>
       </div>
 
-      <div className="flex space-x-8">
+      <div className="flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-8">
         {/* Sidebar */}
-        <div className="w-64 bg-white rounded-xl shadow-sm border border-gray-200 h-fit">
+        <div className="w-full lg:w-64 bg-white rounded-xl shadow-sm border border-gray-200 h-fit">
           <div className="p-4">
-            <nav className="space-y-2">
+            <nav className="grid grid-cols-2 lg:grid-cols-1 gap-2">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (

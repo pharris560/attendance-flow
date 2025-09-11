@@ -1,13 +1,13 @@
 {
-  "name": "attendance-flow",
+  "name": "ace-attendance",
   "version": "1.0.0",
-  "description": "AttendanceFlow - Smart Attendance Tracking System",
+  "description": "ACE Attendance - Smart Attendance Tracking System",
   "private": true,
   "type": "module",
-  "homepage": "https://github.com/pharris560/attendance-flow",
+  "homepage": "https://github.com/pharris560/ace-attendance",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pharris560/attendance-flow.git"
+    "url": "https://github.com/pharris560/ace-attendance.git"
   },
   "keywords": [
     "attendance",
