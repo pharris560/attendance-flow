@@ -1,4 +1,3 @@
-import BuildInfo from './components/BuildInfo';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
@@ -15,10 +14,12 @@ import QRCodes from './pages/QRCodes';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import AttendanceCheck from './pages/AttendanceCheck';
+import BuildInfo from './components/BuildInfo';
+
 const AppContent: React.FC = () => {
   const { loading } = useApp();
 
-  // route guard first
+  // show dedicated screen for QR check route
   const isAttendanceCheck = window.location.pathname === '/attendance-check';
   if (isAttendanceCheck) {
     return (
@@ -28,7 +29,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // loading guard next
+  // loading gate
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -40,7 +41,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // main layout + footer last
+  // main layout
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
@@ -66,3 +67,15 @@ const AppContent: React.FC = () => {
     </div>
   );
 };
+
+function App() {
+  return (
+    <AppProvider>
+      <Router>
+        <AppContent />
+      </Router>
+    </AppProvider>
+  );
+}
+
+export default App;
