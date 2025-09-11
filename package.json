@@ -1,7 +1,7 @@
 {
-  "name": "vite-react-typescript-starter",
+  "name": "attendance-flow",
   "version": "1.0.0",
-  "description": "Smart Attendance Tracking System",
+  "description": "AttendanceFlow - Smart Attendance Tracking System",
   "private": true,
   "type": "module",
   "homepage": "https://github.com/pharris560/attendance-flow",
@@ -14,17 +14,18 @@
     "education",
     "react",
     "typescript",
-    "supabase"
+    "supabase",
+    "qr-code",
+    "tracking"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.3",
-    "@types/qrcode": "^1.5.5",
     "html2canvas": "^1.4.1",
     "jspdf": "^3.0.2",
     "jspdf-autotable": "^5.0.2",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
+    "@types/qrcode": "^1.5.5",
     "@types/react": "^18.3.5",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
@@ -51,5 +53,9 @@
     "typescript": "^5.5.3",
     "typescript-eslint": "^8.3.0",
     "vite": "^5.4.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
