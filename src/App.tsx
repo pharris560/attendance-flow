@@ -1,3 +1,19 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AppProvider } from './contexts/AppContext';
+import { useApp } from './contexts/AppContext';
+import Sidebar from './components/Layout/Sidebar';
+import Header from './components/Layout/Header';
+import Dashboard from './pages/Dashboard';
+import Students from './pages/Students';
+import Staff from './pages/Staff';
+import StaffAttendance from './pages/StaffAttendance';
+import Classes from './pages/Classes';
+import QRScanner from './pages/QRScanner';
+import QRCodes from './pages/QRCodes';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
+import AttendanceCheck from './pages/AttendanceCheck';
 const AppContent: React.FC = () => {
   const { loading } = useApp();
 
