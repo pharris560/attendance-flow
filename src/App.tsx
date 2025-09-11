@@ -1,29 +1,8 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AppProvider } from './contexts/AppContext';
-import { useApp } from './contexts/AppContext';
-import Sidebar from './components/Layout/Sidebar';
-import Header from './components/Layout/Header';
-import Dashboard from './pages/Dashboard';
-import Students from './pages/Students';
-import Staff from './pages/Staff';
-import StaffAttendance from './pages/StaffAttendance';
-import Classes from './pages/Classes';
-import QRScanner from './pages/QRScanner';
-import QRCodes from './pages/QRCodes';
-import Reports from './pages/Reports';
-import Settings from './pages/Settings';
-import AttendanceCheck from './pages/AttendanceCheck';
-
-// ⬇️ Add this import
-import BuildInfo from './components/BuildInfo';
-
 const AppContent: React.FC = () => {
   const { loading } = useApp();
 
-  // Check if we're on the attendance-check route
+  // route guard first
   const isAttendanceCheck = window.location.pathname === '/attendance-check';
-  
   if (isAttendanceCheck) {
     return (
       <Routes>
@@ -32,6 +11,7 @@ const AppContent: React.FC = () => {
     );
   }
 
+  // loading guard next
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -43,6 +23,7 @@ const AppContent: React.FC = () => {
     );
   }
 
+  // main layout + footer last
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
@@ -62,22 +43,9 @@ const AppContent: React.FC = () => {
         </Routes>
       </main>
 
-      {/* ⬇️ Add this tiny footer anywhere you like */}
       <footer className="p-3 text-xs text-gray-500 opacity-60">
-        <BuildInfo />
+        {import.meta.env.MODE !== 'production' && <BuildInfo />}
       </footer>
     </div>
   );
 };
-
-function App() {
-  return (
-    <AppProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AppProvider>
-  );
-}
-
-export default App;
