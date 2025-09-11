@@ -62,7 +62,7 @@ const AppContent: React.FC = () => {
       </main>
 
       <footer className="p-3 text-xs text-gray-500 opacity-60">
-        {import.meta.env.MODE !== 'production' && <BuildInfo />}
+        <BuildInfo />
       </footer>
     </div>
   );
