@@ -15,13 +15,15 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import AttendanceCheck from './pages/AttendanceCheck';
 
+// ⬇️ Add this import
+import BuildInfo from './components/BuildInfo';
+
 const AppContent: React.FC = () => {
   const { loading } = useApp();
 
   // Check if we're on the attendance-check route
   const isAttendanceCheck = window.location.pathname === '/attendance-check';
   
-  // If we're processing a QR code, don't show the loading screen
   if (isAttendanceCheck) {
     return (
       <Routes>
@@ -59,6 +61,11 @@ const AppContent: React.FC = () => {
           <Route path="/attendance-check" element={<AttendanceCheck />} />
         </Routes>
       </main>
+
+      {/* ⬇️ Add this tiny footer anywhere you like */}
+      <footer className="p-3 text-xs text-gray-500 opacity-60">
+        <BuildInfo />
+      </footer>
     </div>
   );
 };
