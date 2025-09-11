@@ -1,3 +1,4 @@
+import BuildInfo from './components/BuildInfo';
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './contexts/AppContext';
