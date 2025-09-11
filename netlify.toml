@@ -3,10 +3,30 @@
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "20"  # 18 also works, but 20 is safest with Vite 5
+  NODE_VERSION = "20"
 
+# SPA history fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Make sure browsers always fetch fresh HTML (prevents old builds sticking)
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# Let static assets be aggressively cached (Vite hashes them)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Easy way to confirm what commit is live
+[[headers]]
+  for = "/*"
+  [headers.values]
+    x-commit-ref = "$COMMIT_REF"
+
 
