@@ -1,0 +1,269 @@
+import React, { useState } from 'react';
+import { Settings as SettingsIcon, User, Bell, Shield, Database, Download } from 'lucide-react';
+
+const Settings: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('profile');
+  const [settings, setSettings] = useState({
+    profile: {
+      name: 'Ms. Johnson',
+      email: 'teacher@school.edu',
+      role: 'Administrator',
+    },
+    notifications: {
+      emailAlerts: true,
+      dailyReports: false,
+      attendanceReminders: true,
+    },
+    privacy: {
+      shareData: false,
+      analyticsEnabled: true,
+    }
+  });
+
+  const tabs = [
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'privacy', label: 'Privacy', icon: Shield },
+    { id: 'data', label: 'Data Management', icon: Database },
+  ];
+
+  const updateSetting = (category: string, key: string, value: any) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category as keyof typeof prev],
+        [key]: value
+      }
+    }));
+  };
+
+  const exportData = () => {
+    // In a real app, this would export actual data
+    const dataStr = JSON.stringify({
+      message: "Attendance data export functionality would be implemented here",
+      exportDate: new Date().toISOString(),
+      type: "attendance_data"
+    }, null, 2);
+    
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = `attendance_data_${new Date().toISOString().split('T')[0]}.json`;
+    
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  };
+
+  return (
+    <div className="ml-64 p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
+        <p className="text-gray-600 mt-2">Manage your account and application preferences</p>
+      </div>
+
+      <div className="flex space-x-8">
+        {/* Sidebar */}
+        <div className="w-64 bg-white rounded-xl shadow-sm border border-gray-200 h-fit">
+          <div className="p-4">
+            <nav className="space-y-2">
+              {tabs.map((tab) => {
+                const Icon = tab.icon;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 ${
+                      activeTab === tab.id
+                        ? 'bg-blue-50 text-blue-600'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="mr-3 h-4 w-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          {activeTab === 'profile' && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Profile Information</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={settings.profile.name}
+                    onChange={(e) => updateSetting('profile', 'name', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                  <input
+                    type="email"
+                    value={settings.profile.email}
+                    onChange={(e) => updateSetting('profile', 'email', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                  <select
+                    value={settings.profile.role}
+                    onChange={(e) => updateSetting('profile', 'role', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="Administrator">Administrator</option>
+                    <option value="Teacher">Teacher</option>
+                    <option value="Staff">Staff</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'notifications' && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Notification Preferences</h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Email Alerts</h3>
+                    <p className="text-sm text-gray-500">Receive email notifications for important events</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications.emailAlerts}
+                      onChange={(e) => updateSetting('notifications', 'emailAlerts', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Daily Reports</h3>
+                    <p className="text-sm text-gray-500">Get daily attendance summary reports</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications.dailyReports}
+                      onChange={(e) => updateSetting('notifications', 'dailyReports', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Attendance Reminders</h3>
+                    <p className="text-sm text-gray-500">Remind you to take attendance for your classes</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications.attendanceReminders}
+                      onChange={(e) => updateSetting('notifications', 'attendanceReminders', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'privacy' && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Privacy & Security</h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Data Sharing</h3>
+                    <p className="text-sm text-gray-500">Allow sharing of anonymized data for research</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.privacy.shareData}
+                      onChange={(e) => updateSetting('privacy', 'shareData', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900">Analytics</h3>
+                    <p className="text-sm text-gray-500">Help improve the application with usage analytics</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={settings.privacy.analyticsEnabled}
+                      onChange={(e) => updateSetting('privacy', 'analyticsEnabled', e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'data' && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 mb-6">Data Management</h2>
+              <div className="space-y-6">
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-gray-900 mb-2">Export Data</h3>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Download all your attendance data in JSON format
+                  </p>
+                  <button
+                    onClick={exportData}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors duration-200"
+                  >
+                    <Download className="h-4 w-4" />
+                    <span>Export Data</span>
+                  </button>
+                </div>
+                
+                <div className="border border-red-200 rounded-lg p-4">
+                  <h3 className="text-sm font-medium text-red-900 mb-2">Danger Zone</h3>
+                  <p className="text-sm text-red-600 mb-4">
+                    These actions cannot be undone. Please be careful.
+                  </p>
+                  <button
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                    onClick={() => alert('This would delete all data in a real implementation')}
+                  >
+                    Delete All Data
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="mt-8 pt-6 border-t border-gray-200">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200">
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Settings;
