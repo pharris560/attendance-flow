@@ -87,13 +87,13 @@ if (supabase) {
   (async () => {
     try {
       const { data: classesData, error: classesError } = await supabase.from('classes').select('*').limit(1);
-      if (error) {
-        console.error('❌ Supabase connection test failed:', error);
+      if (classesError) {
+        console.error('❌ Supabase connection test failed:', classesError);
         console.error('Error details:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
+          code: classesError.code,
+          message: classesError.message,
+          details: classesError.details,
+          hint: classesError.hint
         });
         console.log('🔄 App will run in DEMO MODE with sample data');
       } else {
