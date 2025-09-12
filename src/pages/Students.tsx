@@ -397,7 +397,13 @@ const Students: React.FC = () => {
                   const className = values[index] || '';
                   if (className) {
                     const foundClass = classes.find(c => c.name.toLowerCase() === className.toLowerCase());
-                    studentData.classId = foundClass?.id || '';
+                    if (foundClass) {
+                      studentData.classId = foundClass.id;
+                    } else {
+                      // Don't assign a class if not found, but don't fail the import
+                      studentData.classId = '';
+                      console.warn(`Class "${className}" not found for student ${studentData.firstName} ${studentData.lastName}`);
+                    }
                   }
                 }
                 else if (header === 'email') studentData.email = values[index] || '';
@@ -405,21 +411,33 @@ const Students: React.FC = () => {
               });
               
               if (!studentData.firstName || !studentData.lastName) {
-                errors.push(`Row ${i + 1}: Missing first name or last name`);
+                errors.push(`Row ${i + 1}: Missing required fields - firstName: "${studentData.firstName}", lastName: "${studentData.lastName}"`);
                 errorCount++;
                 continue;
               }
               
+              console.log(`Importing student ${i + 1}:`, studentData);
               await addStudent(studentData);
               successCount++;
             } catch (error) {
-              errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              console.error(`Error importing row ${i + 1}:`, error);
+              errors.push(`Row ${i + 1}: ${errorMessage}`);
               errorCount++;
             }
           }
           
           if (errors.length > 0) {
-            setCsvError(`Imported ${successCount} students successfully. ${errorCount} errors:\n${errors.slice(0, 5).join('\n')}${errors.length > 5 ? '\n...and more' : ''}`);
+            const errorSummary = `Imported ${successCount} students successfully. ${errorCount} errors:\n${errors.slice(0, 10).join('\n')}${errors.length > 10 ? '\n...and more' : ''}`;
+            setCsvError(errorSummary);
+            
+            // Also show available classes for reference
+            const availableClasses = classes.map(c => c.name).join(', ');
+            console.log('Available classes in system:', availableClasses);
+            
+            if (errorCount > 0 && successCount > 0) {
+              alert(`Partial success: ${successCount} students imported, ${errorCount} failed. Check the error details below.`);
+            }
           } else {
             alert(`Successfully imported ${successCount} students!`);
             setShowCsvModal(false);
@@ -427,7 +445,8 @@ const Students: React.FC = () => {
             setCsvPreview([]);
           }
         } catch (error) {
-          setCsvError('Error processing CSV file. Please check the format and try again.');
+          console.error('CSV processing error:', error);
+          setCsvError(`Error processing CSV file: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the format and try again.`);
         } finally {
           setIsProcessingCsv(false);
         }
@@ -435,7 +454,8 @@ const Students: React.FC = () => {
       
       reader.readAsText(csvFile);
     } catch (error) {
-      setCsvError('Error reading file. Please try again.');
+      console.error('File reading error:', error);
+      setCsvError(`Error reading file: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
       setIsProcessingCsv(false);
     }
   };
