@@ -812,12 +812,6 @@ const Students: React.FC = () => {
                   <div className="border border-gray-200 rounded-lg overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
-                  {(student.email || student.phone) && (
-                    <div className="text-xs text-gray-500 mb-3 text-center space-y-1">
-                      {student.email && <p>📧 {student.email}</p>}
-                      {student.phone && <p>📱 {student.phone}</p>}
-                    </div>
-                  )}
                         <tr>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">First Name</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">Last Name</th>
@@ -828,28 +822,28 @@ const Students: React.FC = () => {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200">
-                        {csvPreview.map((student, index) => {
-                          const classExists = student.className ? 
-                            classes.some(c => c.name.toLowerCase() === student.className.toLowerCase()) : 
+                        {csvPreview.map((csvStudent, index) => {
+                          const classExists = csvStudent.className ? 
+                            classes.some(c => c.name.toLowerCase() === csvStudent.className.toLowerCase()) : 
                             true;
                           
                           return (
                             <tr key={index} className={!classExists ? 'bg-yellow-50' : ''}>
-                              <td className="px-3 py-2">{student.firstName}</td>
-                              <td className="px-3 py-2">{student.lastName}</td>
+                              <td className="px-3 py-2">{csvStudent.firstName}</td>
+                              <td className="px-3 py-2">{csvStudent.lastName}</td>
                               <td className="px-3 py-2">
-                                {student.className || <span className="text-gray-400">No class</span>}
+                                {csvStudent.className || <span className="text-gray-400">No class</span>}
                               </td>
                               <td className="px-3 py-2 text-xs">
-                                {student.email || <span className="text-gray-400">-</span>}
+                                {csvStudent.email || <span className="text-gray-400">-</span>}
                               </td>
                               <td className="px-3 py-2 text-xs">
-                                {student.phone || <span className="text-gray-400">-</span>}
+                                {csvStudent.phone || <span className="text-gray-400">-</span>}
                               </td>
                               <td className="px-3 py-2">
-                                {!student.firstName || !student.lastName ? (
+                                {!csvStudent.firstName || !csvStudent.lastName ? (
                                   <span className="text-red-600 text-xs">Missing name</span>
-                                ) : !classExists && student.className ? (
+                                ) : !classExists && csvStudent.className ? (
                                   <span className="text-yellow-600 text-xs">Class not found</span>
                                 ) : (
                                   <span className="text-green-600 text-xs">Ready</span>
