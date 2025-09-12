@@ -26,19 +26,32 @@ const Dashboard: React.FC = () => {
       ? Math.round((todayPresentStudents / studentsWithAttendanceToday) * 100)
       : 0;
 
-    // Simplified attendance data - only show if there are records
-    const hasAttendanceData = attendanceRecords.length > 0;
-    let attendanceByStatus = [];
+    // Classes distribution data
+    const hasClassData = classes.length > 0 && students.length > 0;
+    let classesByStudents = [];
     
-    if (hasAttendanceData) {
-      // Only calculate this if we have data
-      attendanceByStatus = [
-        { name: 'Present', value: attendanceRecords.filter(r => r.status === 'present').length, color: '#10B981' },
-        { name: 'Absent', value: attendanceRecords.filter(r => r.status === 'absent').length, color: '#F87171' },
-        { name: 'Tardy', value: attendanceRecords.filter(r => r.status === 'tardy').length, color: '#F59E0B' },
-        { name: 'Excused', value: attendanceRecords.filter(r => r.status === 'excused').length, color: '#38BDF8' },
-        { name: 'Other', value: attendanceRecords.filter(r => r.status === 'other').length, color: '#FB923C' },
-      ].filter(item => item.value > 0); // Only show statuses that have data
+    if (hasClassData) {
+      // Generate colors for classes
+      const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316', '#06B6D4', '#84CC16'];
+      
+      classesByStudents = classes.map((cls, index) => {
+        const studentCount = students.filter(student => student.classId === cls.id).length;
+        return {
+          name: cls.name,
+          value: studentCount,
+          color: colors[index % colors.length]
+        };
+      }).filter(item => item.value > 0); // Only show classes that have students
+      
+      // Add "No Class" category if there are unassigned students
+      const unassignedStudents = students.filter(student => !student.classId || student.classId === '').length;
+      if (unassignedStudents > 0) {
+        classesByStudents.push({
+          name: 'No Class Assigned',
+          value: unassignedStudents,
+          color: '#6B7280'
+        });
+      }
     }
 
     return {
@@ -48,8 +61,8 @@ const Dashboard: React.FC = () => {
       todayPresentStudents,
       studentsWithAttendanceToday,
       todayAttendanceRate,
-      attendanceByStatus,
-      hasAttendanceData
+      classesByStudents,
+      hasClassData
     };
   }, [students.length, staff.length, classes.length, attendanceRecords.length]); // Only recalculate when counts change
 
@@ -105,30 +118,30 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Only show charts if we have attendance data */}
-      {dashboardData.hasAttendanceData ? (
+      {dashboardData.hasClassData ? (
         <>
-          {/* Main Attendance Chart - Only if we have data */}
-          {dashboardData.attendanceByStatus.length > 0 && (
+          {/* Classes Distribution Chart - Only if we have data */}
+          {dashboardData.classesByStudents.length > 0 && (
             <div className="mb-8">
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-4xl mx-auto">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 text-center">Attendance Overview</h2>
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 text-center">Students by Class</h2>
                 
                 <div className="flex justify-center">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={dashboardData.attendanceByStatus}
+                        data={dashboardData.classesByStudents}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => {
-                          return percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : '';
+                          return percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : '';
                         }}
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {dashboardData.attendanceByStatus.map((entry, index) => (
+                        {dashboardData.classesByStudents.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -139,13 +152,13 @@ const Dashboard: React.FC = () => {
                 
                 {/* Legend */}
                 <div className="mt-4 flex flex-wrap justify-center gap-3">
-                  {dashboardData.attendanceByStatus.map((item) => (
+                  {dashboardData.classesByStudents.map((item) => (
                     <div key={item.name} className="flex items-center space-x-2 text-base font-medium">
                       <div 
                         className="w-4 h-4 rounded-full" 
                         style={{ backgroundColor: item.color }}
                       />
-                      <span className="text-gray-700">{item.name}: {item.value}</span>
+                      <span className="text-gray-700">{item.name}: {item.value} student{item.value !== 1 ? 's' : ''}</span>
                     </div>
                   ))}
                 </div>
@@ -176,8 +189,8 @@ const Dashboard: React.FC = () => {
         /* No data state - much faster to render */
         <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-200 text-center">
           <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">No Attendance Data Yet</h2>
-          <p className="text-gray-600 mb-6">Start taking attendance to see your dashboard analytics</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">No Class Data Yet</h2>
+          <p className="text-gray-600 mb-6">Add classes and assign students to see the distribution chart</p>
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <Users className="h-4 w-4" />
