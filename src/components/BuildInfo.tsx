@@ -1,13 +1,20 @@
 export default function BuildInfo() {
-  const hash = (__BUILD_COMMIT__ || '').slice(0, 7) || (import.meta.env.DEV ? 'dev' : '');
-  const time = __BUILD_TIME__ ? new Date(__BUILD_TIME__).toLocaleString() : '';
+  // Using typeof avoids ReferenceError when the symbol is undefined
+  const commit =
+    (typeof __BUILD_COMMIT__ !== 'undefined' && __BUILD_COMMIT__) || '';
+  const timeISO =
+    (typeof __BUILD_TIME__ !== 'undefined' && __BUILD_TIME__) || '';
 
-  // Hide entirely if we don't have anything to show (e.g., local dev)
+  const hash =
+    commit ? commit.slice(0, 7) : (import.meta.env.DEV ? 'dev' : '');
+  const time = timeISO ? new Date(timeISO).toLocaleString() : '';
+
   if (!hash && !time) return null;
 
   return (
     <small style={{ opacity: 0.6 }}>
-      build {hash}{time ? ` · ${time}` : ''}
+      build {hash}
+      {time ? ` · ${time}` : ''}
     </small>
   );
 }
