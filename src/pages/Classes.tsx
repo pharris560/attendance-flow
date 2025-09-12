@@ -342,6 +342,8 @@ const Classes: React.FC = () => {
                                   date: new Date(selectedDate),
                                   type: 'staff',
                                 });
+                                // Add visual feedback delay
+                                await new Promise(resolve => setTimeout(resolve, 300));
                               } catch (error) {
                                 setAttendanceError(`Failed to mark ${member.firstName} ${member.lastName} as present. Please try again.`);
                               } finally {
@@ -368,6 +370,7 @@ const Classes: React.FC = () => {
                                   date: new Date(selectedDate),
                                   type: 'staff',
                                 });
+                                await new Promise(resolve => setTimeout(resolve, 300));
                               } catch (error) {
                                 setAttendanceError(`Failed to mark ${member.firstName} ${member.lastName} as absent. Please try again.`);
                               } finally {
@@ -394,6 +397,7 @@ const Classes: React.FC = () => {
                                   date: new Date(selectedDate),
                                   type: 'staff',
                                 });
+                                await new Promise(resolve => setTimeout(resolve, 300));
                               } catch (error) {
                                 setAttendanceError(`Failed to mark ${member.firstName} ${member.lastName} as tardy. Please try again.`);
                               } finally {
@@ -420,6 +424,7 @@ const Classes: React.FC = () => {
                                   date: new Date(selectedDate),
                                   type: 'staff',
                                 });
+                                await new Promise(resolve => setTimeout(resolve, 300));
                               } catch (error) {
                                 setAttendanceError(`Failed to mark ${member.firstName} ${member.lastName} as excused. Please try again.`);
                               } finally {
