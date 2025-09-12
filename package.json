@@ -18,12 +18,10 @@
     "qr-code",
     "tracking"
   ],
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
+"scripts": {
+  "build": "vite build",
+  "typecheck": "tsc --noEmit"
+},
   "dependencies": {
     "@supabase/supabase-js": "^2.57.3",
     "html2canvas": "^1.4.1",
