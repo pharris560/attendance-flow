@@ -63,7 +63,7 @@ const AttendanceCheck: React.FC = () => {
           
         if (personByName) {
           console.log('Found person by name instead:', personByName);
-          // Use the person found by name
+          // Use the person found by name and mark attendance in their assigned class
           const attendanceData: any = {
             status: 'present' as const,
             date: new Date(),
@@ -71,18 +71,24 @@ const AttendanceCheck: React.FC = () => {
           };
 
           if (type === 'student') {
-            attendanceData.studentId = personByName.id;
-            attendanceData.classId = personByName.classId;
+            const student = personByName as Student;
+            attendanceData.studentId = student.id;
+            attendanceData.classId = student.classId;
           } else {
-            attendanceData.staffId = personByName.id;
-            attendanceData.department = (personByName as any).department;
+            const staffMember = personByName as Staff;
+            attendanceData.staffId = staffMember.id;
+            attendanceData.department = staffMember.department;
           }
 
           await markAttendance(attendanceData);
 
+          const locationInfo = type === 'student' 
+            ? classes.find(c => c.id === (personByName as Student).classId)?.name || 'No class assigned'
+            : (personByName as Staff).department;
+
           setStatus({
             success: true,
-            message: `✅ ${personByName.firstName} ${personByName.lastName} has been marked as "Present" (matched by name)`,
+            message: `✅ ${personByName.firstName} ${personByName.lastName} has been marked as "Present" in ${locationInfo}! (matched by name)`,
             person: personByName,
             type
           });
@@ -109,19 +115,30 @@ const AttendanceCheck: React.FC = () => {
         const student = person as Student;
         attendanceData.studentId = student.id;
         attendanceData.classId = student.classId;
+        
+        // Ensure the student has a class assigned
+        if (!student.classId) {
+          console.warn('Student has no class assigned:', student);
+        }
       } else {
-        const staff = person as Staff;
-        attendanceData.staffId = staff.id;
-        attendanceData.department = staff.department;
+        const staffMember = person as Staff;
+        attendanceData.staffId = staffMember.id;
+        attendanceData.department = staffMember.department;
+        // For staff, we don't assign to a specific class, but use department
       }
 
       console.log('Marking attendance:', attendanceData);
       await markAttendance(attendanceData);
       console.log('Attendance marked successfully');
 
+      // Get class/department info for success message
+      const locationInfo = type === 'student' 
+        ? classes.find(c => c.id === (person as Student).classId)?.name || 'No class assigned'
+        : (person as Staff).department;
+
       setStatus({
         success: true,
-        message: `Successful! ${person.firstName} has been marked as "Present"`,
+        message: `✅ ${person.firstName} ${person.lastName} has been marked as "Present" in ${locationInfo}!`,
         person,
         type
       });
