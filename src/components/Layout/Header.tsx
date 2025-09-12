@@ -1,14 +1,26 @@
-// src/components/Layout/Header.tsx
 import React from "react";
+import { Menu } from "lucide-react";
 
-const AppHeader: React.FC = () => {
+type Props = { onMenuClick: () => void };
+
+const AppHeader: React.FC<Props> = ({ onMenuClick }) => {
   return (
-    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b">
-      {/* 64px toolbar */}
-      <div className="h-16 px-4 flex items-center justify-between">
-        <div className="text-sm text-gray-700 font-medium">ACE Attendance</div>
-        {/* right-side actions can go here */}
-      </div>
+    <header className="h-16 bg-white border-b flex items-center justify-between px-3 md:px-4">
+      {/* Left: mobile hamburger */}
+      <button
+        type="button"
+        aria-label="Open menu"
+        onClick={onMenuClick}
+        className="md:hidden p-2 -ml-1"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+
+      {/* Center / brand */}
+      <div className="text-sm text-gray-700 font-medium">ACE Attendance</div>
+
+      {/* Right (placeholder for actions) */}
+      <div className="w-6 h-6" />
     </header>
   );
 };
