@@ -54,6 +54,7 @@ const Dashboard: React.FC = () => {
       attendanceByStatus
     };
   }, [students, staff, classes, attendanceRecords]);
+
   const StatCard: React.FC<{ title: string; value: string; icon: React.ElementType; color: string }> = ({
     title, value, icon: Icon, color
   }) => (
@@ -84,7 +85,7 @@ const Dashboard: React.FC = () => {
           
           {/* Legend at top for mobile */}
           <div className="mb-4 flex flex-wrap justify-center gap-2 lg:hidden">
-            {attendanceByStatus.filter(item => item.value > 0).map((item) => (
+            {dashboardData.attendanceByStatus.filter(item => item.value > 0).map((item) => (
               <div key={item.name} className="flex items-center space-x-2 text-sm font-medium">
                 <div 
                   className="w-3 h-3 rounded-full" 
@@ -118,7 +119,7 @@ const Dashboard: React.FC = () => {
                 </Pie>
                 <Tooltip />
               </PieChart>
-          </ResponsiveContainer>
+            </ResponsiveContainer>
           </div>
           
           {/* Legend at bottom for desktop */}
@@ -284,7 +285,6 @@ const Dashboard: React.FC = () => {
           </div>
         )}
       </div>
-
     </div>
   );
 };
