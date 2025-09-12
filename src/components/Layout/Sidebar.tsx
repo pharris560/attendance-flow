@@ -1,91 +1,76 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Users, 
-  UserCheck,
-  BookOpen, 
-  ClipboardCheck, 
-  QrCode,
-  Scan,
-  FileText,
-  Settings,
-  Menu,
-  X
-} from 'lucide-react';
+import { NavLink } from "react-router-dom";
+import { X } from "lucide-react";
+import React from "react";
 
-const Sidebar: React.FC = () => {
-  const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
+type Props = { open: boolean; onClose: () => void };
 
-  const menuItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/students', icon: Users, label: 'Students' },
-    { path: '/staff', icon: UserCheck, label: 'Staff' },
-    { path: '/classes', icon: BookOpen, label: 'Classes' },
-    { path: '/qr-scanner', icon: Scan, label: 'QR Scanner' },
-    { path: '/qr-codes', icon: QrCode, label: 'QR Codes' },
-    { path: '/reports', icon: FileText, label: 'Reports' },
-    { path: '/settings', icon: Settings, label: 'Settings' },
-  ];
+const LinkItem: React.FC<React.PropsWithChildren<{ to: string; onClick?: () => void }>> = ({ to, onClick, children }) => (
+  <NavLink
+    to={to}
+    onClick={onClick}
+    className={({ isActive }) =>
+      `block px-3 py-2 rounded hover:bg-gray-100 ${isActive ? "bg-gray-100 font-medium" : ""}`
+    }
+  >
+    {children}
+  </NavLink>
+);
 
-  const isActive = (path: string) => location.pathname === path;
-
-  const closeSidebar = () => setIsOpen(false);
-
+export default function Sidebar({ open, onClose }: Props) {
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-white rounded-lg shadow-lg border border-gray-200"
-      >
-        {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-      </button>
-
-      {/* Mobile Overlay */}
-      {isOpen && (
-        <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-          onClick={closeSidebar}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`
-        fixed left-0 top-0 z-40 h-screen bg-white shadow-lg transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:z-10
-        w-64
-      `}>
-        <div className="p-6 border-b border-gray-200">
-          <h1 className="text-xl font-bold text-gray-800">ACE Attendance</h1>
-          <p className="text-sm text-gray-600 mt-1">Smart Attendance Tracking</p>
+      {/* Desktop sidebar (md and up) */}
+      <aside className="hidden md:flex w-64 h-dvh bg-white border-r flex-col">
+        <div className="h-16 px-4 flex items-center border-b">
+          <div className="text-base font-semibold">ACE Attendance</div>
+          <span className="ml-2 text-xs text-gray-500">Smart Tracking</span>
         </div>
-        
-        <nav className="mt-8">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={closeSidebar}
-                className={`flex items-center px-6 py-3 text-sm font-medium transition-colors duration-200 ${
-                  isActive(item.path)
-                    ? 'bg-blue-50 text-blue-600 border-r-2 border-blue-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-800'
-                }`}
-              >
-                <Icon className="mr-3 h-5 w-5" />
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+          <LinkItem to="/">Dashboard</LinkItem>
+          <LinkItem to="/students">Students</LinkItem>
+          <LinkItem to="/staff">Staff</LinkItem>
+          <LinkItem to="/staff-attendance">Staff Attendance</LinkItem>
+          <LinkItem to="/classes">Classes</LinkItem>
+          <LinkItem to="/qr-scanner">QR Scanner</LinkItem>
+          <LinkItem to="/qr-codes">QR Codes</LinkItem>
+          <LinkItem to="/reports">Reports</LinkItem>
+          <LinkItem to="/settings">Settings</LinkItem>
         </nav>
+      </aside>
+
+      {/* Mobile drawer (below md) */}
+      <div className={`md:hidden fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}>
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black/40 transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
+          onClick={onClose}
+          aria-hidden="true"
+        />
+        {/* Drawer */}
+        <aside
+          className={`absolute left-0 top-0 h-full w-72 bg-white border-r shadow transition-transform duration-300 ${open ? "translate-x-0" : "-translate-x-full"}`}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="h-16 px-4 flex items-center justify-between border-b">
+            <div className="text-base font-semibold">ACE Attendance</div>
+            <button aria-label="Close menu" onClick={onClose} className="p-2">
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <nav className="p-2 overflow-y-auto h-[calc(100%-4rem)] space-y-1">
+            <LinkItem to="/" onClick={onClose}>Dashboard</LinkItem>
+            <LinkItem to="/students" onClick={onClose}>Students</LinkItem>
+            <LinkItem to="/staff" onClick={onClose}>Staff</LinkItem>
+            <LinkItem to="/staff-attendance" onClick={onClose}>Staff Attendance</LinkItem>
+            <LinkItem to="/classes" onClick={onClose}>Classes</LinkItem>
+            <LinkItem to="/qr-scanner" onClick={onClose}>QR Scanner</LinkItem>
+            <LinkItem to="/qr-codes" onClick={onClose}>QR Codes</LinkItem>
+            <LinkItem to="/reports" onClick={onClose}>Reports</LinkItem>
+            <LinkItem to="/settings" onClick={onClose}>Settings</LinkItem>
+          </nav>
+        </aside>
       </div>
     </>
   );
-};
-
-export default Sidebar;
+}
