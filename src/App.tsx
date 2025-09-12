@@ -81,26 +81,25 @@ const AppContent: React.FC = () => {
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Sidebar />
+  // inside the "main layout" return of AppContent
+return (
+  <div className="min-h-screen bg-gray-50">
+    <Sidebar /> {/* should be fixed left, see step 2 */}
+
+    {/* content column */}
+    <div className="pl-64"> {/* matches Sidebar width (w-64) */}
       <Header />
-      <main>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/students" element={<Students />} />
-          <Route path="/staff" element={<Staff />} />
-          <Route path="/classes" element={<Classes />} />
-          <Route path="/qr-scanner" element={<QRScanner />} />
-          <Route path="/qr-codes" element={<QRCodes />} />
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/attendance-check" element={<AttendanceCheck />} />
-        </Routes>
+      <main className="p-6">
+        {/* <Routes> ... */}
       </main>
+
+      {/* keep your BuildInfo if you like */}
+      {/* <footer className="fixed bottom-2 right-2 bg-white/80 px-2 py-1 rounded text-xs shadow">
+        <BuildInfo />
+      </footer> */}
     </div>
-  );
-};
+  </div>
+);
 
 function App() {
   return (
