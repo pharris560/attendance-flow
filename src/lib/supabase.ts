@@ -86,25 +86,28 @@ if (supabase) {
   console.log('\n🧪 Testing Supabase Connection...');
   (async () => {
     try {
-      const { count, error } = await supabase.from('classes').select('count', { count: 'exact', head: true });
+      const { data: classesData, error: classesError } = await supabase.from('classes').select('*').limit(1);
       if (error) {
-        console.error('❌ Connection test failed:', error);
+        console.error('❌ Supabase connection test failed:', error);
         console.error('Error details:', {
           code: error.code,
           message: error.message,
           details: error.details,
           hint: error.hint
         });
+        console.log('🔄 App will run in DEMO MODE with sample data');
       } else {
-        console.log('✅ Connection successful! Classes table accessible');
-        console.log('Classes count:', count);
+        console.log('✅ Supabase connection successful! Database is accessible');
+        console.log('Sample classes data:', classesData);
+        console.log('🎯 App is connected to REAL DATABASE');
       }
     } catch (err: unknown) {
-      console.error('❌ Connection test threw error:', err);
+      console.error('❌ Supabase connection test threw error:', err);
+      console.log('🔄 App will run in DEMO MODE with sample data');
     }
   })();
 } else {
-  console.error('❌ No Supabase client to test');
+  console.error('❌ No Supabase client available - running in DEMO MODE');
 }
 
 console.log('='.repeat(50));

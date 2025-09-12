@@ -26,6 +26,12 @@ const AttendanceCheck: React.FC = () => {
   const processAttendance = async () => {
     try {
       console.log('Processing attendance from QR code...');
+      console.log('Current app mode check:');
+      console.log('- Total students in system:', students.length);
+      console.log('- Total staff in system:', staff.length);
+      console.log('- Available students:', students.map(s => `${s.firstName} ${s.lastName} (ID: ${s.id.substring(0, 8)})`));
+      console.log('- Available staff:', staff.map(s => `${s.firstName} ${s.lastName} (ID: ${s.id.substring(0, 8)})`));
+      
       console.log('Search params:', {
         type: searchParams.get('type'),
         id: searchParams.get('id'),
@@ -53,8 +59,12 @@ const AttendanceCheck: React.FC = () => {
 
       if (!person) {
         console.error(`${type} not found with ID: ${id}`);
-        console.log('Available students:', students.map(s => ({ id: s.id, name: `${s.firstName} ${s.lastName}` })));
-        console.log('Available staff:', staff.map(s => ({ id: s.id, name: `${s.firstName} ${s.lastName}` })));
+        console.error('❌ PERSON NOT FOUND BY ID');
+        console.log('🔍 This could mean:');
+        console.log('1. The QR code is from a different database/system');
+        console.log('2. The person was deleted from the current system');
+        console.log('3. The app is running in demo mode but QR code is from real database');
+        console.log('4. The app is connected to real database but QR code is from demo data');
         
         // Try to find by name as fallback
         const personByName = type === 'student' 
@@ -62,7 +72,7 @@ const AttendanceCheck: React.FC = () => {
           : staff.find(s => `${s.firstName} ${s.lastName}` === name);
           
         if (personByName) {
-          console.log('Found person by name instead:', personByName);
+          console.log('✅ Found person by name as fallback:', personByName);
           // Use the person found by name and mark attendance in their assigned class
           const attendanceData: any = {
             status: 'present' as const,
@@ -88,7 +98,7 @@ const AttendanceCheck: React.FC = () => {
 
           setStatus({
             success: true,
-            message: `✅ ${personByName.firstName} ${personByName.lastName} has been marked as "Present" in ${locationInfo}! (matched by name)`,
+            message: `✅ ${personByName.firstName} ${personByName.lastName} has been marked as "Present" in ${locationInfo}!\n\n(Note: Matched by name - QR code ID didn't match current system)`,
             person: personByName,
             type
           });
@@ -99,7 +109,9 @@ const AttendanceCheck: React.FC = () => {
           return;
         }
         
-        throw new Error(`${type === 'student' ? 'Student' : 'Staff member'} "${name}" not found. This QR code may be from a different system or the person may have been removed.`);
+        // Provide more helpful error message
+        const currentMode = students.length <= 6 ? 'DEMO MODE' : 'DATABASE MODE';
+        throw new Error(`${type === 'student' ? 'Student' : 'Staff member'} "${name}" not found.\n\nPossible causes:\n• QR code is from a different system\n• Person was removed from current system\n• App is in ${currentMode} but QR code is from different mode\n\nCurrent system has ${students.length} students and ${staff.length} staff members.`);
       }
 
       console.log('Found person:', person);

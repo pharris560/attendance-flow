@@ -59,7 +59,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       
       // Check if Supabase is configured
       if (!supabase) {
-        console.warn('⚠️  DEMO MODE: Supabase not configured - using sample data');
+        console.warn('⚠️  RUNNING IN DEMO MODE: Supabase not configured - using sample data');
         console.warn('To use real database, set environment variables:');
         console.warn('- VITE_SUPABASE_URL');
         console.warn('- VITE_SUPABASE_ANON_KEY');
@@ -68,7 +68,7 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         return;
       }
       
-      console.log('✅ Loading data from Supabase...');
+      console.log('✅ Attempting to load data from Supabase database...');
       
       try {
         // Load classes first (needed for students foreign key)
@@ -79,8 +79,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
         if (classesError) {
           console.error('Error loading classes:', classesError);
+          console.error('This indicates a database connection or permission issue');
           throw classesError;
         }
+
+        console.log('✅ Successfully loaded classes from database:', classesData?.length || 0);
 
         // Load students
         const { data: studentsData, error: studentsError } = await supabase
@@ -90,8 +93,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
         if (studentsError) {
           console.error('Error loading students:', studentsError);
+          console.error('This indicates a database connection or permission issue');
           throw studentsError;
         }
+
+        console.log('✅ Successfully loaded students from database:', studentsData?.length || 0);
 
         // Load staff
         const { data: staffData, error: staffError } = await supabase
@@ -101,8 +107,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
         if (staffError) {
           console.error('Error loading staff:', staffError);
+          console.error('This indicates a database connection or permission issue');
           throw staffError;
         }
+
+        console.log('✅ Successfully loaded staff from database:', staffData?.length || 0);
 
         // Load attendance records
         const { data: attendanceData, error: attendanceError } = await supabase
@@ -112,14 +121,18 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
 
         if (attendanceError) {
           console.error('Error loading attendance records:', attendanceError);
+          console.error('This indicates a database connection or permission issue');
           throw attendanceError;
         }
 
+        console.log('✅ Successfully loaded attendance records from database:', attendanceData?.length || 0);
+
         // If no data exists, add sample data for testing
         if (classesData.length === 0 && studentsData.length === 0 && staffData.length === 0) {
-          console.log('🎯 No data found in Supabase, loading sample data...');
+          console.log('🎯 Database is empty - loading sample data for testing...');
           await addSampleData();
         } else {
+          console.log('🎯 CONNECTED TO REAL DATABASE - Using live data');
           setClasses(classesData);
           setStudents(studentsData.map(student => ({
             id: student.id,
@@ -152,17 +165,17 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
           }
         }
         
-        console.log('✅ Data loaded successfully from Supabase');
+        console.log('✅ All data loaded successfully from Supabase database');
       } catch (supabaseError) {
-        console.error('❌ Supabase connection failed, falling back to demo mode:', supabaseError);
-        console.log('🎯 Loading sample data for demo mode...');
+        console.error('❌ Supabase database connection failed, falling back to DEMO MODE:', supabaseError);
+        console.log('🎯 RUNNING IN DEMO MODE - Loading sample data...');
         await addSampleData();
       }
     } catch (error) {
       console.error('Error loading data:', error);
       setError(error instanceof Error ? error.message : 'Failed to load data');
       // Fallback to demo mode if anything fails
-      console.log('🎯 Fallback: Loading sample data for demo mode...');
+      console.log('🎯 FALLBACK TO DEMO MODE - Loading sample data...');
       await addSampleData();
     } finally {
       setLoading(false);
