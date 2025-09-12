@@ -20,9 +20,9 @@ export const generateQRCodeURL = async (
         // Fallback to current domain, but handle development environments
         const currentHost = window.location.host;
         
-        if (currentHost.includes('webcontainer-api.io') || currentHost.includes('localhost')) {
-          // For development, use a placeholder that will be replaced
-          baseUrl = 'https://attendanceai.app'; // Your actual domain
+        if (currentHost.includes('webcontainer-api.io') || currentHost.includes('localhost') || currentHost.includes('bolt.new')) {
+          // For development, use your production domain
+          baseUrl = 'https://attendanceai.app';
         } else {
           baseUrl = `${window.location.protocol}//${window.location.host}`;
         }

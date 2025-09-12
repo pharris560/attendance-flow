@@ -4,10 +4,10 @@
   "description": "ACE Attendance - Smart Attendance Tracking System",
   "private": true,
   "type": "module",
-  "homepage": "https://github.com/pharris560/ace-attendance",
+  "homepage": "https://attendanceai.app",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pharris560/ace-attendance.git"
+    "url": "https://github.com/YOUR_USERNAME/ace-attendance.git"
   },
   "keywords": [
     "attendance",

@@ -30,6 +30,11 @@ A modern, comprehensive attendance management system built with React, TypeScrip
 
 Visit the live application at: [https://attendanceai.app](https://attendanceai.app)
 
+**Production Environment:**
+- Custom domain: `attendanceai.app`
+- Database: Supabase with real-time sync
+- QR codes: Generated with production URLs
+
 ## Getting Started
 
 ### Prerequisites

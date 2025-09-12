@@ -39,7 +39,7 @@
 - `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
 
 ### Optional:
-- `VITE_APP_URL` - Your production domain (for QR code generation)
+- `VITE_APP_URL` - Your production domain (recommended: `https://attendanceai.app`)
 
 ## Verification
 
@@ -48,6 +48,7 @@ After deployment, check:
 2. Look for console messages:
    - `✅ Supabase connection successful!` = Database connected
    - `🔄 App will run in DEMO MODE` = Using sample data
+3. Check QR codes contain your production domain: `attendanceai.app`
 
 ## Troubleshooting
 
