@@ -168,20 +168,60 @@ const Dashboard: React.FC = () => {
 
           {/* Quick Stats */}
           <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Attendance</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-green-50 rounded-lg">
-                <p className="text-2xl font-bold text-green-600">{dashboardData.todayPresentStudents}</p>
-                <p className="text-sm text-gray-600">Students Present</p>
-              </div>
-              <div className="text-center p-4 bg-blue-50 rounded-lg">
-                <p className="text-2xl font-bold text-blue-600">{dashboardData.studentsWithAttendanceToday}</p>
-                <p className="text-sm text-gray-600">Total Recorded</p>
-              </div>
-              <div className="text-center p-4 bg-orange-50 rounded-lg">
-                <p className="text-2xl font-bold text-orange-600">{dashboardData.todayAttendanceRate}%</p>
-                <p className="text-sm text-gray-600">Attendance Rate</p>
-              </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Today's Class Attendance</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {classes.map((cls, index) => {
+                const classStudents = students.filter(student => student.classId === cls.id);
+                const todayClassRecords = attendanceRecords.filter(record => 
+                  record.type === 'student' &&
+                  record.classId === cls.id &&
+                  new Date(record.date).toDateString() === new Date().toDateString()
+                );
+                const presentCount = todayClassRecords.filter(record => record.status === 'present').length;
+                const totalStudents = classStudents.length;
+                const attendanceRate = totalStudents > 0 ? Math.round((presentCount / totalStudents) * 100) : 0;
+                
+                // Color scheme for classes
+                const colors = [
+                  { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
+                  { bg: 'bg-green-50', text: 'text-green-600', border: 'border-green-200' },
+                  { bg: 'bg-purple-50', text: 'text-purple-600', border: 'border-purple-200' },
+                  { bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-200' },
+                  { bg: 'bg-pink-50', text: 'text-pink-600', border: 'border-pink-200' },
+                  { bg: 'bg-indigo-50', text: 'text-indigo-600', border: 'border-indigo-200' },
+                  { bg: 'bg-teal-50', text: 'text-teal-600', border: 'border-teal-200' },
+                  { bg: 'bg-red-50', text: 'text-red-600', border: 'border-red-200' }
+                ];
+                const colorScheme = colors[index % colors.length];
+                
+                return (
+                  <div key={cls.id} className={`p-4 ${colorScheme.bg} ${colorScheme.border} border rounded-lg`}>
+                    <div className="text-center">
+                      <h3 className={`font-semibold ${colorScheme.text} text-sm mb-2 truncate`} title={cls.name}>
+                        {cls.name}
+                      </h3>
+                      <div className={`text-2xl font-bold ${colorScheme.text} mb-1`}>
+                        {presentCount}/{totalStudents}
+                      </div>
+                      <div className="text-xs text-gray-600 mb-2">
+                        Present Today
+                      </div>
+                      <div className={`text-sm font-medium ${colorScheme.text}`}>
+                        {attendanceRate}% Rate
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              
+              {/* Show message if no classes */}
+              {classes.length === 0 && (
+                <div className="col-span-full text-center py-8 text-gray-500">
+                  <BookOpen className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                  <p>No classes created yet</p>
+                  <p className="text-sm">Add classes to see attendance by class</p>
+                </div>
+              )}
             </div>
           </div>
         </>
