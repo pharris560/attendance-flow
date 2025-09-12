@@ -23,30 +23,24 @@ import AttendanceCheck from './pages/AttendanceCheck';
 
 import BuildInfo from './components/BuildInfo';
 
-/** Simple in-file error boundary so runtime errors don't render a blank page */
+/** Small error boundary to avoid white screens */
 class ErrorBoundary extends React.Component<
   React.PropsWithChildren,
   { hasError: boolean; error?: unknown }
 > {
-  state = { hasError: false as boolean, error: undefined as unknown };
-
+  state = { hasError: false, error: undefined as unknown };
   static getDerivedStateFromError(error: unknown) {
     return { hasError: true, error };
   }
-
   componentDidCatch(error: unknown, info: unknown) {
-    // Visible in the browser console & Netlify logs (SSR/edge) if applicable
     console.error('App crashed:', error, info);
   }
-
   render() {
     if (this.state.hasError) {
       return (
         <div className="p-6">
           <h2 className="text-lg font-semibold mb-2">Something went wrong.</h2>
-          <pre className="text-sm bg-gray-100 p-3 rounded">
-            {String(this.state.error)}
-          </pre>
+          <pre className="text-sm bg-gray-100 p-3 rounded">{String(this.state.error)}</pre>
         </div>
       );
     }
@@ -57,17 +51,14 @@ class ErrorBoundary extends React.Component<
 const AppContent: React.FC = () => {
   const { loading } = useApp();
   const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
-  // Dedicated lightweight route for QR/attendance flow
-  const isAttendanceCheck = location.pathname.startsWith('/attendance-check');
-  if (isAttendanceCheck) {
+  if (location.pathname.startsWith('/attendance-check')) {
     return (
       <>
         <Routes>
           <Route path="/attendance-check" element={<AttendanceCheck />} />
         </Routes>
-
-        {/* Build stamp (handy while debugging deploys) */}
         <footer className="fixed bottom-2 right-2 bg-white/80 backdrop-blur px-2 py-1 rounded text-xs shadow">
           <BuildInfo />
         </footer>
@@ -77,7 +68,7 @@ const AppContent: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-dvh bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading ACE Attendance...</p>
@@ -86,18 +77,14 @@ const AppContent: React.FC = () => {
     );
   }
 
-  // Main app layout
+  // Responsive: desktop = two columns; mobile = stacked with drawer
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar should be fixed in its own component; we add left padding for content */}
-      <Sidebar />
+    <div className="min-h-dvh bg-gray-50 md:flex">
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      {/* Push content to the right of a 16rem (w-64) sidebar; adjust if your Sidebar width differs */}
-      <div className="pl-64">
-        {/* Keep header sticky and reasonably short inside the component */}
-        <Header />
-
-        <main className="p-6">
+      <div className="flex-1 flex flex-col">
+        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 p-4 md:p-6 overflow-auto">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/students" element={<Students />} />
@@ -108,13 +95,11 @@ const AppContent: React.FC = () => {
             <Route path="/qr-codes" element={<QRCodes />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/settings" element={<Settings />} />
-            {/* Keep this here as well so deep links still resolve inside the shell */}
             <Route path="/attendance-check" element={<AttendanceCheck />} />
           </Routes>
         </main>
       </div>
 
-      {/* Build stamp (always visible for now; remove if you want to hide in prod) */}
       <footer className="fixed bottom-2 right-2 bg-white/80 backdrop-blur px-2 py-1 rounded text-xs shadow">
         <BuildInfo />
       </footer>
