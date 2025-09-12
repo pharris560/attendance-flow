@@ -39,4 +39,15 @@ const Header: React.FC = () => {
   );
 };
 
-export default Header;
+export default function Header() {
+  return (
+    <header className="sticky top-0 z-30 bg-white/80 backdrop-blur border-b">
+      {/* 64px tall toolbar */}
+      <div className="h-16 px-4 flex items-center justify-between">
+        {/* Left: put page title/search here if you want */}
+        <div className="text-sm text-gray-600">Welcome</div>
+        {/* Right: user, actions, etc. */}
+      </div>
+    </header>
+  );
+}
