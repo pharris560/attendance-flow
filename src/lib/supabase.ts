@@ -1,71 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Comprehensive environment variable debugging
-console.log('🔧 ACE Attendance Environment Debug:');
-console.log('='.repeat(50));
-console.log('Current URL:', window.location.href);
-console.log('Domain:', window.location.hostname);
-console.log('Build mode:', import.meta.env.MODE);
-console.log('Base URL:', import.meta.env.BASE_URL);
-console.log('Dev mode:', import.meta.env.DEV);
-console.log('Prod mode:', import.meta.env.PROD);
-console.log('SSR mode:', import.meta.env.SSR);
-
-// Log all available environment variables
-console.log('\n📋 All Available Environment Variables:');
-const allEnvVars = Object.keys(import.meta.env);
-console.log('Total env vars found:', allEnvVars.length);
-allEnvVars.forEach(key => {
-  const value = import.meta.env[key];
-  if (key.includes('SUPABASE')) {
-    console.log(`${key}:`, value ? `✅ SET (${value.length} chars)` : '❌ MISSING');
-    if (value) {
-      console.log(`  → Starts with: ${value.substring(0, 20)}...`);
-      console.log(`  → Ends with: ...${value.substring(value.length - 10)}`);
-    }
-  } else {
-    console.log(`${key}:`, value);
-  }
-});
-
-// Specific checks for our variables
-console.log('\n🎯 Specific Variable Checks:');
+// Environment variable checks (reduced logging for performance)
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-console.log('VITE_SUPABASE_URL check:');
-console.log('  Raw value:', supabaseUrl);
-console.log('  Type:', typeof supabaseUrl);
-console.log('  Length:', supabaseUrl?.length || 0);
-console.log('  Truthy:', !!supabaseUrl);
-
-console.log('VITE_SUPABASE_ANON_KEY check:');
-console.log('  Raw value type:', typeof supabaseKey);
-console.log('  Length:', supabaseKey?.length || 0);
-console.log('  Truthy:', !!supabaseKey);
-console.log('  Starts with eyJ:', supabaseKey?.startsWith('eyJ') || false);
-
-// Check if variables are exactly what we expect
-const expectedUrl = 'https://kzetbefeojjfwlilconv.supabase.co';
-const expectedKeyStart = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9';
-
-console.log('\n✅ Expected vs Actual:');
-console.log('URL matches expected:', supabaseUrl === expectedUrl);
-console.log('Key starts correctly:', supabaseKey?.startsWith(expectedKeyStart) || false);
-
-if (supabaseUrl !== expectedUrl) {
-  console.log('Expected URL:', expectedUrl);
-  console.log('Actual URL:', supabaseUrl);
-}
-
-// Try to create Supabase client
-console.log('\n🔌 Supabase Client Creation:');
+// Create Supabase client
 export const supabase = supabaseUrl && supabaseKey 
   ? (() => {
-      console.log('✅ Creating Supabase client...');
       try {
         const client = createClient(supabaseUrl, supabaseKey);
-        console.log('✅ Supabase client created successfully');
         return client;
       } catch (error) {
         console.error('❌ Error creating Supabase client:', error);
@@ -73,69 +16,54 @@ export const supabase = supabaseUrl && supabaseKey
       }
     })()
   : (() => {
-      console.error('❌ Cannot create Supabase client - missing variables');
-      console.error('Missing:', {
-        url: !supabaseUrl,
-        key: !supabaseKey
-      });
+      if (import.meta.env.DEV) {
+        console.warn('⚠️ Supabase not configured - running in demo mode');
+      }
       return null;
     })();
 
 // Test connection if client exists
 if (supabase) {
-  console.log('\n🧪 Testing Supabase Connection...');
   (async () => {
     try {
       // Test auth connection
       const { data: authData, error: authError } = await supabase.auth.getSession();
       if (authError) {
-        console.error('❌ Supabase auth test failed:', authError);
+        if (import.meta.env.DEV) {
+          console.error('❌ Supabase auth test failed:', authError);
+        }
       } else {
-        console.log('✅ Supabase auth connection successful');
+        if (import.meta.env.DEV) {
+          console.log('✅ Supabase connected');
+        }
       }
       
       // Test user_profiles table specifically
       const { data: profilesData, error: profilesError } = await supabase.from('user_profiles').select('*').limit(1);
       if (profilesError) {
-        console.error('❌ user_profiles table test failed:', profilesError);
-        console.error('This means the user roles migration has not been run yet');
-        console.log('🔧 Please run the user roles migration to enable signup');
-      } else {
-        console.log('✅ user_profiles table accessible');
+        if (import.meta.env.DEV) {
+          console.error('❌ user_profiles table test failed:', profilesError);
+        }
       }
       
       // Test database connection
       const { data: classesData, error: classesError } = await supabase.from('classes').select('*').limit(1);
       if (classesError) {
-        console.error('❌ Supabase connection test failed:', classesError);
-        console.error('Error details:', {
-          code: classesError.code,
-          message: classesError.message,
-          details: classesError.details,
-          hint: classesError.hint
-        });
-        console.log('🔄 App will run in DEMO MODE with sample data');
-      } else {
-        console.log('✅ Supabase connection successful! Database is accessible');
-        console.log('Sample classes data:', classesData);
-        console.log('🎯 App is connected to REAL DATABASE');
+        if (import.meta.env.DEV) {
+          console.error('❌ Database connection failed:', classesError);
+        }
       }
     } catch (err: unknown) {
-      console.error('❌ Supabase connection test threw error:', err);
-      console.log('🔄 App will run in DEMO MODE with sample data');
+      if (import.meta.env.DEV) {
+        console.error('❌ Supabase connection error:', err);
+      }
     }
   })();
-} else {
-  console.error('❌ No Supabase client available - running in DEMO MODE');
 }
-
-console.log('='.repeat(50));
 
 // Helper function to upload profile photos
 export const uploadProfilePhoto = async (file: File, userId: string, type: 'student' | 'staff'): Promise<string> => {
   try {
-    console.log('Starting photo upload for:', { userId, type, fileName: file.name });
-    
     if (!supabase) {
       throw new Error('Supabase client not available');
     }
@@ -144,17 +72,13 @@ export const uploadProfilePhoto = async (file: File, userId: string, type: 'stud
     const fileName = `${type}_${userId}_${Date.now()}.${fileExt}`;
     const filePath = `${type}s/${fileName}`;
 
-    console.log('Uploading to path:', filePath);
-    
     const { error: uploadError } = await supabase.storage
       .from('profile-photos')
       .upload(filePath, file);
 
     if (uploadError) {
-      console.error('Upload error:', uploadError);
       // If bucket doesn't exist or has permission issues, try to create it
       if (uploadError.message.includes('Bucket not found') || uploadError.message.includes('permission')) {
-        console.log('Attempting to create storage bucket...');
         const { error: bucketError } = await supabase.storage.createBucket('profile-photos', {
           public: true,
           allowedMimeTypes: ['image/*'],
@@ -162,7 +86,6 @@ export const uploadProfilePhoto = async (file: File, userId: string, type: 'stud
         });
         
         if (bucketError && !bucketError.message.includes('already exists')) {
-          console.error('Bucket creation error:', bucketError);
           throw new Error(`Storage setup failed: ${bucketError.message}`);
         }
         
@@ -179,12 +102,10 @@ export const uploadProfilePhoto = async (file: File, userId: string, type: 'stud
       }
     }
 
-    console.log('Upload successful, getting public URL...');
     const { data } = supabase.storage
       .from('profile-photos')
       .getPublicUrl(filePath);
 
-    console.log('Public URL generated:', data.publicUrl);
     return data.publicUrl;
   } catch (error) {
     console.error('Photo upload error:', error);

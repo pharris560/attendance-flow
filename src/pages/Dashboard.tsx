@@ -1,4 +1,5 @@
 import React from 'react';
+import { useMemo } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { Users, UserCheck, BookOpen, Calendar, TrendingUp } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
@@ -6,49 +7,53 @@ import { useApp } from '../contexts/AppContext';
 const Dashboard: React.FC = () => {
   const { students, staff, classes, attendanceRecords } = useApp();
 
-  // Calculate statistics
-  const totalStudents = students.length;
-  const totalStaff = staff.length;
-  const totalClasses = classes.length;
-  
-  // Get today's attendance records
-  const todayRecords = attendanceRecords.filter(record => 
-    new Date(record.date).toDateString() === new Date().toDateString()
-  );
-  
-  // Count students present today (only student records)
-  const todayStudentRecords = todayRecords.filter(record => record.type === 'student');
-  const todayPresentStudents = todayStudentRecords.filter(record => 
-    record.type === 'student' && record.status === 'present'
-  ).length;
-  
-  // Get unique students who had attendance taken today
-  const studentsWithAttendanceToday = new Set(
-    todayStudentRecords.map(record => record.studentId)
-  ).size;
-  
-  // Calculate attendance rate for today
-  const todayAttendanceRate = studentsWithAttendanceToday > 0 
-    ? Math.round((todayPresentStudents / studentsWithAttendanceToday) * 100)
-    : 0;
+  // Memoize expensive calculations
+  const dashboardData = useMemo(() => {
+    // Calculate statistics
+    const totalStudents = students.length;
+    const totalStaff = staff.length;
+    const totalClasses = classes.length;
+    
+    // Get today's attendance records
+    const todayRecords = attendanceRecords.filter(record => 
+      new Date(record.date).toDateString() === new Date().toDateString()
+    );
+    
+    // Count students present today (only student records)
+    const todayStudentRecords = todayRecords.filter(record => record.type === 'student');
+    const todayPresentStudents = todayStudentRecords.filter(record => 
+      record.type === 'student' && record.status === 'present'
+    ).length;
+    
+    // Get unique students who had attendance taken today
+    const studentsWithAttendanceToday = new Set(
+      todayStudentRecords.map(record => record.studentId)
+    ).size;
+    
+    // Calculate attendance rate for today
+    const todayAttendanceRate = studentsWithAttendanceToday > 0 
+      ? Math.round((todayPresentStudents / studentsWithAttendanceToday) * 100)
+      : 0;
 
-  // Attendance data for charts
-  const attendanceByStatus = [
-    { name: 'Present', value: attendanceRecords.filter(r => r.status === 'present').length, color: '#10B981' },
-    { name: 'Absent', value: attendanceRecords.filter(r => r.status === 'absent').length, color: '#F87171' },
-    { name: 'Tardy', value: attendanceRecords.filter(r => r.status === 'tardy').length, color: '#F59E0B' },
-    { name: 'Excused', value: attendanceRecords.filter(r => r.status === 'excused').length, color: '#38BDF8' },
-    { name: 'Other', value: attendanceRecords.filter(r => r.status === 'other').length, color: '#FB923C' },
-  ];
+    // Attendance data for charts
+    const attendanceByStatus = [
+      { name: 'Present', value: attendanceRecords.filter(r => r.status === 'present').length, color: '#10B981' },
+      { name: 'Absent', value: attendanceRecords.filter(r => r.status === 'absent').length, color: '#F87171' },
+      { name: 'Tardy', value: attendanceRecords.filter(r => r.status === 'tardy').length, color: '#F59E0B' },
+      { name: 'Excused', value: attendanceRecords.filter(r => r.status === 'excused').length, color: '#38BDF8' },
+      { name: 'Other', value: attendanceRecords.filter(r => r.status === 'other').length, color: '#FB923C' },
+    ];
 
-  const weeklyAttendance = [
-    { day: 'Mon', present: 45, absent: 5 },
-    { day: 'Tue', present: 48, absent: 2 },
-    { day: 'Wed', present: 47, absent: 3 },
-    { day: 'Thu', present: 46, absent: 4 },
-    { day: 'Fri', present: 44, absent: 6 },
-  ];
-
+    return {
+      totalStudents,
+      totalStaff,
+      totalClasses,
+      todayPresentStudents,
+      studentsWithAttendanceToday,
+      todayAttendanceRate,
+      attendanceByStatus
+    };
+  }, [students, staff, classes, attendanceRecords]);
   const StatCard: React.FC<{ title: string; value: string; icon: React.ElementType; color: string }> = ({
     title, value, icon: Icon, color
   }) => (
@@ -94,7 +99,7 @@ const Dashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={attendanceByStatus}
+                data={dashboardData.attendanceByStatus}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -107,7 +112,7 @@ const Dashboard: React.FC = () => {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {attendanceByStatus.map((entry, index) => (
+                {dashboardData.attendanceByStatus.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -118,7 +123,7 @@ const Dashboard: React.FC = () => {
           
           {/* Legend at bottom for desktop */}
           <div className="mt-4 hidden lg:flex flex-wrap justify-center gap-3">
-            {attendanceByStatus.filter(item => item.value > 0).map((item) => (
+            {dashboardData.attendanceByStatus.filter(item => item.value > 0).map((item) => (
               <div key={item.name} className="flex items-center space-x-2 text-base font-medium">
                 <div 
                   className="w-4 h-4 rounded-full" 
@@ -135,25 +140,25 @@ const Dashboard: React.FC = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard 
           title="Total Students" 
-          value={totalStudents.toString()} 
+          value={dashboardData.totalStudents.toString()} 
           icon={Users} 
           color="bg-blue-500"
         />
         <StatCard 
           title="Total Staff" 
-          value={totalStaff.toString()} 
+          value={dashboardData.totalStaff.toString()} 
           icon={UserCheck} 
           color="bg-purple-500"
         />
         <StatCard 
           title="Today's Attendance" 
-          value={`${todayPresentStudents}/${studentsWithAttendanceToday}`} 
+          value={`${dashboardData.todayPresentStudents}/${dashboardData.studentsWithAttendanceToday}`} 
           icon={Calendar} 
           color="bg-green-500"
         />
         <StatCard 
           title="Attendance Rate" 
-          value={`${todayAttendanceRate}%`} 
+          value={`${dashboardData.todayAttendanceRate}%`} 
           icon={TrendingUp} 
           color="bg-orange-500"
         />
