@@ -75,12 +75,12 @@ const Dashboard: React.FC = () => {
       {/* Attendance Distribution Chart */}
       <div className="mb-8">
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-4xl mx-auto">
-          <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 mb-6 text-center">Attendance Distribution</h2>
+          <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 text-center">Attendance Distribution</h2>
           
           {/* Legend at top for mobile */}
-          <div className="mb-6 flex flex-wrap justify-center gap-2 lg:hidden">
+          <div className="mb-4 flex flex-wrap justify-center gap-2 lg:hidden">
             {attendanceByStatus.filter(item => item.value > 0).map((item) => (
-              <div key={item.name} className="flex items-center space-x-2 text-base font-medium">
+              <div key={item.name} className="flex items-center space-x-2 text-sm font-medium">
                 <div 
                   className="w-3 h-3 rounded-full" 
                   style={{ backgroundColor: item.color }}
@@ -91,7 +91,7 @@ const Dashboard: React.FC = () => {
           </div>
           
           <div className="flex justify-center">
-            <ResponsiveContainer width="100%" height={500}>
+            <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
                 data={attendanceByStatus}
@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
                   if (window.innerWidth < 1024) return '';
                   return percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : '';
                 }}
-                outerRadius={150}
+                outerRadius={100}
                 fill="#8884d8"
                 dataKey="value"
               >
@@ -117,9 +117,9 @@ const Dashboard: React.FC = () => {
           </div>
           
           {/* Legend at bottom for desktop */}
-          <div className="mt-6 hidden lg:flex flex-wrap justify-center gap-4">
+          <div className="mt-4 hidden lg:flex flex-wrap justify-center gap-3">
             {attendanceByStatus.filter(item => item.value > 0).map((item) => (
-              <div key={item.name} className="flex items-center space-x-2 text-lg font-medium">
+              <div key={item.name} className="flex items-center space-x-2 text-base font-medium">
                 <div 
                   className="w-4 h-4 rounded-full" 
                   style={{ backgroundColor: item.color }}
@@ -132,7 +132,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard 
           title="Total Students" 
           value={totalStudents.toString()} 
@@ -160,9 +160,9 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Class-specific Pie Charts */}
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Class Attendance Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
+      <div>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">Class Attendance Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {classes.map((cls) => {
             const classRecords = attendanceRecords.filter(record => record.classId === cls.id);
             const classStudents = students.filter(student => student.classId === cls.id);
