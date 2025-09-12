@@ -348,11 +348,10 @@ const Login: React.FC = () => {
             )}
 
             {/* Submit Button */}
-            <div className="flex space-x-2">
             <button
               type="submit"
               disabled={loading}
-              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
                 isLogin
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white focus:ring-blue-500'
                   : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white focus:ring-purple-500'
@@ -367,16 +366,6 @@ const Login: React.FC = () => {
                 <span>{isLogin ? 'Sign In & Start Tracking! 🚀' : 'Create My Account! ✨'}</span>
               )}
             </button>
-            
-            <button
-              type="button"
-              onClick={checkSupabaseUsers}
-              className="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
-              title="Check Supabase User Status"
-            >
-              <Database className="h-5 w-5" />
-            </button>
-            </div>
 
           </form>
 
@@ -405,6 +394,117 @@ const Login: React.FC = () => {
             </p>
           </div>
         </div>
+
+        {/* Debug Info Modal */}
+        {showDebugInfo && debugInfo && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                    <Database className="h-6 w-6 mr-2 text-blue-600" />
+                    Supabase User Verification Status
+                  </h2>
+                  <button
+                    onClick={() => setShowDebugInfo(false)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <XCircle className="h-6 w-6" />
+                  </button>
+                </div>
+                
+                <div className="space-y-4">
+                  {debugInfo.error ? (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <XCircle className="h-5 w-5 text-red-500 mr-2" />
+                        <span className="font-medium text-red-800">Error</span>
+                      </div>
+                      <p className="text-red-700 mt-1">{debugInfo.error}</p>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Current Session */}
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h3 className="font-medium text-blue-900 mb-2 flex items-center">
+                          {debugInfo.session?.exists ? (
+                            <CheckCircle className="h-4 w-4 text-green-500 mr-2" />
+                          ) : (
+                            <XCircle className="h-4 w-4 text-red-500 mr-2" />
+                          )}
+                          Current Session
+                        </h3>
+                        {debugInfo.session?.user ? (
+                          <div className="text-sm text-blue-800 space-y-1">
+                            <p><strong>Email:</strong> {debugInfo.session.user.email}</p>
+                            <p><strong>Email Verified:</strong> 
+                              {debugInfo.session.user.emailConfirmed ? (
+                                <span className="text-green-600 ml-1">✅ Yes ({debugInfo.session.user.emailConfirmedAt})</span>
+                              ) : (
+                                <span className="text-red-600 ml-1">❌ No - Check your email for verification link</span>
+                              )}
+                            </p>
+                            <p><strong>User ID:</strong> {debugInfo.session.user.id}</p>
+                            <p><strong>Created:</strong> {new Date(debugInfo.session.user.createdAt).toLocaleString()}</p>
+                            <p><strong>Last Sign In:</strong> {debugInfo.session.user.lastSignIn ? new Date(debugInfo.session.user.lastSignIn).toLocaleString() : 'Never'}</p>
+                          </div>
+                        ) : (
+                          <p className="text-blue-800 text-sm">No active session</p>
+                        )}
+                        {debugInfo.session?.error && (
+                          <p className="text-red-600 text-sm mt-2">Error: {debugInfo.session.error}</p>
+                        )}
+                      </div>
+
+                      {/* Test Email Status */}
+                      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                        <h3 className="font-medium text-gray-900 mb-2">Test Email</h3>
+                        <p className="text-sm text-gray-700">{debugInfo.testEmail}</p>
+                        {formData.email && (
+                          <div className="mt-2">
+                            {debugInfo.session?.user?.email === formData.email ? (
+                              <div className="flex items-center text-green-600">
+                                <CheckCircle className="h-4 w-4 mr-1" />
+                                <span className="text-sm">This email matches your current session</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-orange-600">
+                                <AlertCircle className="h-4 w-4 mr-1" />
+                                <span className="text-sm">This email doesn't match your current session</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Troubleshooting */}
+                      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                        <h3 className="font-medium text-yellow-900 mb-2">🔧 Troubleshooting</h3>
+                        <div className="text-sm text-yellow-800 space-y-2">
+                          {!debugInfo.session?.exists && (
+                            <p>• No active session - you need to sign in</p>
+                          )}
+                          {debugInfo.session?.user && !debugInfo.session.user.emailConfirmed && (
+                            <p>• ⚠️ Email not verified - check your email for verification link</p>
+                          )}
+                          {debugInfo.session?.user?.emailConfirmed && (
+                            <p>• ✅ Email is verified - login should work</p>
+                          )}
+                          <p>• If you can't find the verification email, check your spam folder</p>
+                          <p>• You can also disable email confirmation in Supabase dashboard</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  <div className="text-xs text-gray-500 border-t pt-2">
+                    Generated: {debugInfo.timestamp}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Features Preview */}
         <div className="mt-8 text-center">
