@@ -36,6 +36,7 @@ const Students: React.FC = () => {
     (selectedClass === '' || student.classId === selectedClass)
   );
 
+  // ---------- Photo crop helpers ----------
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -62,11 +63,11 @@ const Students: React.FC = () => {
 
   const handleCropMouseMove = (e: React.MouseEvent) => {
     if (!isDragging) return;
-    
+
     const rect = e.currentTarget.getBoundingClientRect();
     const newX = Math.max(0, Math.min(rect.width - cropArea.width, e.clientX - rect.left - dragStart.x));
     const newY = Math.max(0, Math.min(rect.height - cropArea.height, e.clientY - rect.top - dragStart.y));
-    
+
     setCropArea(prev => ({ ...prev, x: newX, y: newY }));
   };
 
@@ -78,17 +79,17 @@ const Students: React.FC = () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const img = new Image();
-    
+
     img.onload = () => {
       canvas.width = 200;
       canvas.height = 200;
-      
+
       // Calculate scale factors
       const containerWidth = 400; // Preview container width
       const containerHeight = 300; // Preview container height
       const scaleX = img.width / containerWidth;
       const scaleY = img.height / containerHeight;
-      
+
       // Draw cropped image
       ctx?.drawImage(
         img,
@@ -101,10 +102,10 @@ const Students: React.FC = () => {
         200,
         200
       );
-      
+
       const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
       setCroppedImage(croppedDataUrl);
-      
+
       // Convert to File object
       canvas.toBlob((blob) => {
         if (blob) {
@@ -112,13 +113,14 @@ const Students: React.FC = () => {
           setPhotoFile(croppedFile);
         }
       }, 'image/jpeg', 0.8);
-      
+
       setShowCropModal(false);
     };
-    
+
     img.src = originalImage;
   };
 
+  // ---------- CRUD ----------
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -129,7 +131,8 @@ const Students: React.FC = () => {
       }
       setShowModal(false);
       setEditingStudent(null);
-      setFormData({ firstName: '', lastName: '', classId: '' });
+      // Keep keys consistent to avoid undefined later
+      setFormData({ firstName: '', lastName: '', classId: '', email: '', phone: '' });
       setPhotoFile(null);
       setCroppedImage('');
     } catch (error) {
@@ -174,9 +177,10 @@ const Students: React.FC = () => {
     setPersonToDelete(null);
   };
 
+  // ---------- ID Card ----------
   const generateIDCard = async (student: any) => {
     const studentClass = classes.find(c => c.id === student.classId);
-    
+
     // Create a temporary div for the ID card
     const cardDiv = document.createElement('div');
     cardDiv.style.width = '400px';
@@ -191,7 +195,7 @@ const Students: React.FC = () => {
     cardDiv.style.display = 'flex';
     cardDiv.style.flexDirection = 'column';
     cardDiv.style.justifyContent = 'space-between';
-    
+
     // Header
     const header = document.createElement('div');
     header.style.textAlign = 'center';
@@ -200,17 +204,17 @@ const Students: React.FC = () => {
       <h2 style="margin: 0; color: #1F2937; font-size: 18px; font-weight: bold;">ACE Attendance</h2>
       <p style="margin: 5px 0 0 0; color: #6B7280; font-size: 12px;">Student ID Card</p>
     `;
-    
+
     // Main content
     const content = document.createElement('div');
     content.style.display = 'flex';
     content.style.alignItems = 'center';
     content.style.gap = '20px';
-    
+
     // Photo section
     const photoSection = document.createElement('div');
     photoSection.style.flexShrink = '0';
-    
+
     if (student.photoUrl) {
       const img = document.createElement('img');
       img.src = student.photoUrl;
@@ -235,7 +239,7 @@ const Students: React.FC = () => {
       placeholder.textContent = `${student.firstName[0]}${student.lastName[0]}`;
       photoSection.appendChild(placeholder);
     }
-    
+
     // Info section
     const infoSection = document.createElement('div');
     infoSection.style.flex = '1';
@@ -244,12 +248,12 @@ const Students: React.FC = () => {
       <p style="margin: 0 0 4px 0; color: #3B82F6; font-size: 14px; font-weight: 600;">${studentClass ? studentClass.name : 'No class assigned'}</p>
       <p style="margin: 0; color: #6B7280; font-size: 12px;">Student ID: ${student.id.substring(0, 8)}</p>
     `;
-    
+
     // QR Code section
     const qrSection = document.createElement('div');
     qrSection.style.flexShrink = '0';
     qrSection.style.textAlign = 'center';
-    
+
     if (student.qrCode && student.qrCode.startsWith('data:image')) {
       const qrImg = document.createElement('img');
       qrImg.src = student.qrCode;
@@ -258,7 +262,7 @@ const Students: React.FC = () => {
       qrImg.style.border = '1px solid #E5E7EB';
       qrImg.style.borderRadius = '4px';
       qrSection.appendChild(qrImg);
-      
+
       const qrLabel = document.createElement('p');
       qrLabel.style.margin = '4px 0 0 0';
       qrLabel.style.fontSize = '10px';
@@ -266,11 +270,11 @@ const Students: React.FC = () => {
       qrLabel.textContent = 'Scan for Attendance';
       qrSection.appendChild(qrLabel);
     }
-    
+
     content.appendChild(photoSection);
     content.appendChild(infoSection);
     content.appendChild(qrSection);
-    
+
     // Footer
     const footer = document.createElement('div');
     footer.style.textAlign = 'center';
@@ -280,18 +284,18 @@ const Students: React.FC = () => {
     footer.innerHTML = `
       <p style="margin: 0; color: #9CA3AF; font-size: 10px;">Generated on ${new Date().toLocaleDateString()}</p>
     `;
-    
+
     cardDiv.appendChild(header);
     cardDiv.appendChild(content);
     cardDiv.appendChild(footer);
-    
+
     // Add to DOM temporarily
     document.body.appendChild(cardDiv);
-    
+
     try {
       // Wait a bit for images to load
       await new Promise(resolve => setTimeout(resolve, 500));
-      
+
       // Generate canvas
       const canvas = await html2canvas(cardDiv, {
         backgroundColor: '#ffffff',
@@ -299,13 +303,13 @@ const Students: React.FC = () => {
         useCORS: true,
         allowTaint: true
       });
-      
+
       // Download the image
       const link = document.createElement('a');
       link.download = `${student.firstName}_${student.lastName}_ID_Card.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-      
+
     } catch (error) {
       console.error('Error generating ID card:', error);
       alert('Error generating ID card. Please try again.');
@@ -314,6 +318,10 @@ const Students: React.FC = () => {
       document.body.removeChild(cardDiv);
     }
   };
+
+  // ---------- CSV helpers ----------
+  const norm = (s?: string) => (s ?? '').trim();
+  const stripBOM = (s: string) => s.replace(/^\uFEFF/, '');
 
   const handleCsvFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -326,36 +334,36 @@ const Students: React.FC = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       try {
-        const csv = event.target?.result as string;
-        const lines = csv.split('\n').filter(line => line.trim());
-        
+        const csv = stripBOM(String(event.target?.result ?? ''));
+        const lines = csv.split(/\r?\n/).filter(line => line.trim());
+
         if (lines.length < 2) {
           setCsvError('CSV file must have at least a header row and one data row');
           return;
         }
 
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-        const requiredHeaders = ['firstname', 'lastname'];
+        const headers = lines[0].split(',').map(h => norm(h).toLowerCase());
+        const requiredHeaders = ['firstname', 'lastname']; // we’ll map variants during import too
         const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
-        
+
         if (missingHeaders.length > 0) {
           setCsvError(`Missing required columns: ${missingHeaders.join(', ')}. Required: firstName, lastName. Optional: className, email, phone`);
           return;
         }
 
         const preview = lines.slice(1, 6).map((line, index) => {
-          const values = line.split(',').map(v => v.trim());
-          const student: any = {};
-          
+          const values = line.split(',').map(v => norm(v));
+          const row: any = {};
+
           headers.forEach((header, i) => {
-            if (header === 'firstname') student.firstName = values[i] || '';
-            else if (header === 'lastname') student.lastName = values[i] || '';
-            else if (header === 'classname') student.className = values[i] || '';
-            else if (header === 'email') student.email = values[i] || '';
-            else if (header === 'phone') student.phone = values[i] || '';
+            if (header === 'firstname') row.firstName = values[i] || '';
+            else if (header === 'lastName'.toLowerCase()) row.lastName = values[i] || '';
+            else if (header === 'classname') row.className = values[i] || '';
+            else if (header === 'email') row.email = values[i] || '';
+            else if (header === 'phone') row.phone = values[i] || '';
           });
-          
-          return { ...student, rowIndex: index + 2 };
+
+        return { ...row, rowIndex: index + 2 };
         });
 
         setCsvPreview(preview);
@@ -363,99 +371,114 @@ const Students: React.FC = () => {
         setCsvError('Error reading CSV file. Please ensure it\'s a valid CSV format.');
       }
     };
-    
+
     reader.readAsText(file);
   };
 
   const handleCsvUpload = async () => {
     if (!csvFile) return;
-    
+
     setIsProcessingCsv(true);
     setCsvError('');
-    
+
     try {
       const reader = new FileReader();
       reader.onload = async (event) => {
         try {
-          const csv = event.target?.result as string;
-          const lines = csv.split('\n').filter(line => line.trim());
-          const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-          
+          const csv = stripBOM(String(event.target?.result ?? ''));
+          const lines = csv.split(/\r?\n/).filter(line => line.trim());
+          const headers = lines[0].split(',').map(h => norm(h).toLowerCase());
+
+          // header alias map
+          const alias = (h: string) => {
+            const x = h.toLowerCase().trim();
+            if (['first', 'first name', 'firstname'].includes(x)) return 'firstname';
+            if (['last', 'last name', 'lastname'].includes(x)) return 'lastname';
+            if (['class', 'class name', 'classname'].includes(x)) return 'classname';
+            return x; // email / phone
+          };
+          const aliasedHeaders = headers.map(alias);
+
           let successCount = 0;
           let errorCount = 0;
-          const errors: string[] = [];
-          
+          const failures: Array<{ row: number; error: string; payload: any }> = [];
+
           for (let i = 1; i < lines.length; i++) {
-            try {
-              const values = lines[i].split(',').map(v => v.trim());
-              const studentData: any = { classId: '' };
-              
-              headers.forEach((header, index) => {
-                if (header === 'firstname') studentData.firstName = values[index] || '';
-                else if (header === 'lastname') studentData.lastName = values[index] || '';
-                else if (header === 'classname') {
-                  const className = values[index] || '';
-                  if (className) {
-                    const foundClass = classes.find(c => c.name.toLowerCase() === className.toLowerCase());
-                    if (foundClass) {
-                      studentData.classId = foundClass.id;
-                    } else {
-                      // Don't assign a class if not found, but don't fail the import
-                      studentData.classId = '';
-                      console.warn(`Class "${className}" not found for student ${studentData.firstName} ${studentData.lastName}`);
-                    }
-                  }
-                }
-                else if (header === 'email') studentData.email = values[index] || '';
-                else if (header === 'phone') studentData.phone = values[index] || '';
-              });
-              
-              if (!studentData.firstName || !studentData.lastName) {
-                errors.push(`Row ${i + 1}: Missing required fields - firstName: "${studentData.firstName}", lastName: "${studentData.lastName}"`);
-                errorCount++;
-                continue;
+            const raw = lines[i];
+            const values = raw.split(',').map(v => norm(v));
+            const row: Record<string, string> = {};
+            aliasedHeaders.forEach((h, idx) => { row[h] = values[idx] ?? ''; });
+
+            const payload: any = {
+              firstName: norm(row['firstname']),
+              lastName: norm(row['lastname']),
+              classId: '',
+              email: norm(row['email']),
+              phone: norm(row['phone']),
+            };
+
+            // resolve classId from className (optional)
+            const className = norm(row['classname']);
+            if (className) {
+              const found = classes.find(c => c.name.toLowerCase() === className.toLowerCase());
+              if (found) {
+                payload.classId = found.id;
+              } else {
+                // not fatal; import continues without a class
+                console.warn(`Class "${className}" not found for row ${i + 1}`);
               }
-              
-              console.log(`Importing student ${i + 1}:`, studentData);
-              await addStudent(studentData);
-              successCount++;
-            } catch (error) {
-              const errorMessage = error instanceof Error ? error.message : String(error);
-              console.error(`Error importing row ${i + 1}:`, error);
-              errors.push(`Row ${i + 1}: ${errorMessage}`);
+            }
+
+            // required fields
+            if (!payload.firstName || !payload.lastName) {
               errorCount++;
+              failures.push({
+                row: i + 1,
+                error: `Missing required fields: firstName="${payload.firstName}", lastName="${payload.lastName}"`,
+                payload
+              });
+              continue;
+            }
+
+            try {
+              await addStudent(payload);
+              successCount++;
+            } catch (err: any) {
+              errorCount++;
+              const msg = err?.message ?? String(err);
+              failures.push({ row: i + 1, error: msg, payload });
+              console.error('Error adding student', { row: i + 1, payload, error: err });
             }
           }
-          
-          if (errors.length > 0) {
-            const errorSummary = `Imported ${successCount} students successfully. ${errorCount} errors:\n${errors.slice(0, 10).join('\n')}${errors.length > 10 ? '\n...and more' : ''}`;
-            setCsvError(errorSummary);
-            
-            // Also show available classes for reference
-            const availableClasses = classes.map(c => c.name).join(', ');
-            console.log('Available classes in system:', availableClasses);
-            
-            if (errorCount > 0 && successCount > 0) {
-              alert(`Partial success: ${successCount} students imported, ${errorCount} failed. Check the error details below.`);
-            }
+
+          if (errorCount > 0 && successCount > 0) {
+            alert(`Partial success: ${successCount} students imported, ${errorCount} failed. Check the error details below.`);
+          } else if (errorCount > 0) {
+            alert(`Import failed: ${errorCount} row(s) errored. See details below.`);
           } else {
             alert(`Successfully imported ${successCount} students!`);
             setShowCsvModal(false);
             setCsvFile(null);
             setCsvPreview([]);
           }
-        } catch (error) {
+
+          setCsvError(
+            failures.length
+              ? `Failed rows:\n` + failures.map(f => `Row ${f.row}: ${f.error}`).join('\n')
+              : ''
+          );
+        } catch (error: any) {
           console.error('CSV processing error:', error);
-          setCsvError(`Error processing CSV file: ${error instanceof Error ? error.message : 'Unknown error'}. Please check the format and try again.`);
+          setCsvError(`Error processing CSV file: ${error?.message ?? 'Unknown error'}. Please check the format and try again.`);
         } finally {
           setIsProcessingCsv(false);
         }
       };
-      
+
       reader.readAsText(csvFile);
-    } catch (error) {
+    } catch (error: any) {
       console.error('File reading error:', error);
-      setCsvError(`Error reading file: ${error instanceof Error ? error.message : 'Unknown error'}. Please try again.`);
+      setCsvError(`Error reading file: ${error?.message ?? 'Unknown error'}. Please try again.`);
       setIsProcessingCsv(false);
     }
   };
@@ -499,7 +522,7 @@ const Students: React.FC = () => {
             className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent w-full"
           />
         </div>
-        
+
         <select
           value={selectedClass}
           onChange={(e) => setSelectedClass(e.target.value)}
@@ -545,14 +568,14 @@ const Students: React.FC = () => {
                   </button>
                 </div>
               </div>
-              
+
               <h3 className="text-lg font-semibold text-gray-900 mb-1 text-center">
                 {student.firstName} {student.lastName}
               </h3>
               <p className="text-sm text-gray-500 mb-3 text-center">
                 {studentClass ? studentClass.name : 'No class assigned'}
               </p>
-              
+
               {/* QR Code Section */}
               <div className="border-t border-gray-200 pt-4">
                 <div className="text-center">
@@ -594,35 +617,35 @@ const Students: React.FC = () => {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               {editingStudent ? 'Edit Student' : 'Add New Student'}
             </h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                 <input
                   type="text"
                   value={formData.firstName}
-                  onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
                 <input
                   type="text"
                   value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 />
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Class</label>
                 <select
                   value={formData.classId}
-                  onChange={(e) => setFormData({...formData, classId: e.target.value})}
+                  onChange={(e) => setFormData({ ...formData, classId: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   required
                 >
@@ -632,7 +655,29 @@ const Students: React.FC = () => {
                   ))}
                 </select>
               </div>
-              
+
+              {/* Optional fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Email (optional)</label>
+                  <input
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Phone (optional)</label>
+                  <input
+                    type="tel"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Profile Photo (Optional)</label>
                 <input
@@ -642,7 +687,7 @@ const Students: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 <p className="text-xs text-gray-500 mt-1">Upload a photo file or leave blank for default icon</p>
-                
+
                 {croppedImage && (
                   <div className="mt-2">
                     <p className="text-xs text-gray-600 mb-1">Preview:</p>
@@ -654,7 +699,7 @@ const Students: React.FC = () => {
                   </div>
                 )}
               </div>
-              
+
               <div className="flex items-center justify-end space-x-3 pt-4">
                 <button
                   type="button"
@@ -697,10 +742,10 @@ const Students: React.FC = () => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div className="text-center">
-                <div 
+                <div
                   className="relative inline-block border-2 border-gray-300 rounded-lg overflow-hidden cursor-move"
                   style={{ width: '400px', height: '300px' }}
                   onMouseMove={handleCropMouseMove}
@@ -713,7 +758,7 @@ const Students: React.FC = () => {
                     className="w-full h-full object-cover"
                     draggable={false}
                   />
-                  
+
                   {/* Crop overlay */}
                   <div
                     className="absolute border-2 border-blue-500 bg-blue-500 bg-opacity-20 cursor-move"
@@ -726,8 +771,8 @@ const Students: React.FC = () => {
                     onMouseDown={handleCropMouseDown}
                   >
                     <div className="absolute inset-0 border-2 border-dashed border-white opacity-75"></div>
-                    
-                    {/* Corner handles */}
+
+                    {/* Corner handles (visual only) */}
                     <div className="absolute -top-1 -left-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-nw-resize"></div>
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-ne-resize"></div>
                     <div className="absolute -bottom-1 -left-1 w-3 h-3 bg-blue-500 border border-white rounded-full cursor-sw-resize"></div>
@@ -735,12 +780,12 @@ const Students: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="text-center text-sm text-gray-600">
                 <Crop className="h-4 w-4 inline mr-1" />
                 Drag the blue area to select the part of the image you want to use
               </div>
-              
+
               <div className="flex items-center justify-end space-x-3">
                 <button
                   onClick={() => {
@@ -782,7 +827,7 @@ const Students: React.FC = () => {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            
+
             <div className="space-y-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <h3 className="text-sm font-medium text-blue-900 mb-2">CSV Format Requirements:</h3>
@@ -799,7 +844,7 @@ const Students: React.FC = () => {
                   <div>Jane,Doe,English Literature,jane@school.edu,(555) 987-6543</div>
                 </div>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Select CSV File
@@ -811,7 +856,7 @@ const Students: React.FC = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
-              
+
               {csvError && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-3">
                   <div className="flex items-start">
@@ -823,7 +868,7 @@ const Students: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               {csvPreview.length > 0 && (
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-2">
@@ -843,10 +888,10 @@ const Students: React.FC = () => {
                       </thead>
                       <tbody className="divide-y divide-gray-200">
                         {csvPreview.map((csvStudent, index) => {
-                          const classExists = csvStudent.className ? 
-                            classes.some(c => c.name.toLowerCase() === csvStudent.className.toLowerCase()) : 
+                          const classExists = csvStudent.className ?
+                            classes.some(c => c.name.toLowerCase() === csvStudent.className.toLowerCase()) :
                             true;
-                          
+
                           return (
                             <tr key={index} className={!classExists ? 'bg-yellow-50' : ''}>
                               <td className="px-3 py-2">{csvStudent.firstName}</td>
@@ -877,7 +922,7 @@ const Students: React.FC = () => {
                   </div>
                 </div>
               )}
-              
+
               <div className="flex items-center justify-end space-x-3 pt-4">
                 <button
                   onClick={() => {
@@ -918,11 +963,11 @@ const Students: React.FC = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-full max-w-md">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Confirm Delete</h2>
-            
+
             <p className="text-gray-700 mb-6">
               Are you sure you want to delete this student?
             </p>
-            
+
             <div className="flex items-center justify-end space-x-3">
               <button
                 onClick={handleDeleteCancel}
@@ -945,3 +990,4 @@ const Students: React.FC = () => {
 };
 
 export default Students;
+
