@@ -1,17 +1,20 @@
 # ACE Attendance - Smart Attendance Tracking System
 
-A modern, comprehensive attendance management system built with React, TypeScript, and Supabase.
+A modern, comprehensive attendance management system built with React, TypeScript, and Supabase. This system provides QR code-based attendance tracking for both students and staff with real-time analytics and reporting.
 
 ## Features
 
-- **Student Management**: Add, edit, and organize students by classes
-- **Staff Management**: Manage staff members with departments and positions
+- **Student Management**: Add, edit, and organize students by classes with contact information
+- **Staff Management**: Manage staff members with departments, positions, and contact details
 - **QR Code Integration**: Generate and scan QR codes for quick attendance marking
 - **Real-time Attendance**: Mark attendance with multiple status options (Present, Absent, Tardy, Excused, Other)
 - **Comprehensive Reports**: Generate detailed attendance reports and analytics
-- **CSV Import**: Bulk import students and staff from CSV files
+- **CSV Import**: Bulk import students and staff from CSV files with email and phone support
 - **Photo Support**: Upload profile photos for students and staff
+- **ID Card Generation**: Download professional ID cards with QR codes
+- **Photo Cropping**: Built-in photo cropping tool for profile pictures
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Database Integration**: Full Supabase integration with demo mode fallback
 
 ## Tech Stack
 
@@ -20,7 +23,12 @@ A modern, comprehensive attendance management system built with React, TypeScrip
 - **Charts**: Recharts
 - **QR Codes**: QR Scanner, QRCode.js
 - **PDF Export**: jsPDF
+- **Image Processing**: html2canvas for ID card generation
 - **Build Tool**: Vite
+
+## Live Demo
+
+Visit the live application at: [https://attendanceai.app](https://attendanceai.app)
 
 ## Getting Started
 
@@ -34,7 +42,7 @@ A modern, comprehensive attendance management system built with React, TypeScrip
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/pharris560/ace-attendance.git
+   git clone https://github.com/YOUR_USERNAME/ace-attendance.git
    cd ace-attendance
    ```
 
@@ -43,24 +51,40 @@ A modern, comprehensive attendance management system built with React, TypeScrip
    npm install
    ```
 
-3. Set up environment variables:
+3. Set up environment variables (for database connection):
    Create a `.env` file in the root directory:
    ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    ```
+   
+   **Note**: The app will run in demo mode if these variables are not set.
 
 4. Start the development server:
    ```bash
    npm run dev
    ```
 
-### Supabase Setup
+### Database Setup (Optional)
+
+The app works in two modes:
+- **Demo Mode**: Uses sample data (default if no environment variables)
+- **Database Mode**: Connects to Supabase for persistent data
+
+#### For Database Mode:
 
 1. Create a new Supabase project
 2. Run the SQL migrations in the `supabase/migrations` folder
-3. Set up Row Level Security (RLS) policies as needed
-4. Create a storage bucket named `profile-photos` for photo uploads
+3. Create a storage bucket named `profile-photos` for photo uploads
+4. Set environment variables (see Installation step 3)
+
+#### Database Schema:
+
+The system uses these main tables:
+- `students` - Student information with class assignments
+- `staff` - Staff members with departments and positions  
+- `classes` - Class/course definitions
+- `attendance_records` - All attendance entries with timestamps
 
 ## Deployment
 
@@ -88,6 +112,7 @@ The built files will be in the `dist` directory.
 |----------|-------------|
 | `VITE_SUPABASE_URL` | Your Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous key |
+| `VITE_APP_URL` | Your production domain (optional) |
 
 ## Usage
 
@@ -95,7 +120,8 @@ The built files will be in the `dist` directory.
 
 1. Navigate to the Classes page
 2. Click on a class to enter attendance mode
-3. Select the date and mark attendance for each student
+3. Select the date and mark attendance for each student/staff member
+4. Use different status options: Present, Absent, Tardy, Excused, or Other (with custom labels)
 4. Use QR Scanner for quick attendance marking
 
 ### Managing Students/Staff
@@ -103,12 +129,31 @@ The built files will be in the `dist` directory.
 1. Use the Students or Staff pages to add new members
 2. Import bulk data using CSV files
 3. Upload profile photos for better identification
+4. Download ID cards with QR codes
+5. Add contact information (email/phone)
 
 ### Generating Reports
 
 1. Go to the Reports page
 2. Select date ranges and filters
 3. Export reports as PDF or CSV
+
+### QR Code Scanning
+
+1. Generate QR codes from the QR Codes page
+2. Use the QR Scanner to mark attendance automatically
+3. QR codes contain attendance URLs that work on any device
+4. Manual entry option available as backup
+
+## Project Structure
+
+- `/src/components` - Reusable UI components
+- `/src/pages` - Main application pages
+- `/src/contexts` - React context for state management
+- `/src/lib` - Supabase client and utilities
+- `/src/types` - TypeScript type definitions
+- `/src/utils` - Helper functions and utilities
+- `/supabase/migrations` - Database schema migrations
 
 ## Contributing
 
