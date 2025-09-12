@@ -7,6 +7,7 @@ import {
 } from 'react-router-dom';
 
 import { AppProvider, useApp } from './contexts/AppContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Sidebar from './components/Layout/Sidebar';
 import Header from './components/Layout/Header';
 
@@ -20,6 +21,7 @@ import QRCodes from './pages/QRCodes';
 import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import AttendanceCheck from './pages/AttendanceCheck';
+import Login from './pages/Login';
 
 import BuildInfo from './components/BuildInfo';
 
@@ -49,9 +51,27 @@ class ErrorBoundary extends React.Component<
 }
 
 const AppContent: React.FC = () => {
-  const { loading } = useApp();
+  const { loading: appLoading } = useApp();
+  const { user, loading: authLoading } = useAuth();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = React.useState(false);
+
+  // Show loading while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-dvh bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4" />
+          <p className="text-gray-600">Loading ACE Attendance...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login page if not authenticated (except for attendance-check route)
+  if (!user && !location.pathname.startsWith('/attendance-check')) {
+    return <Login />;
+  }
 
   if (location.pathname.startsWith('/attendance-check')) {
     return (
@@ -66,7 +86,7 @@ const AppContent: React.FC = () => {
     );
   }
 
-  if (loading) {
+  if (appLoading) {
     return (
       <div className="min-h-dvh bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -109,13 +129,15 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <AppProvider>
-      <Router>
-        <ErrorBoundary>
-          <AppContent />
-        </ErrorBoundary>
-      </Router>
-    </AppProvider>
+    <AuthProvider>
+      <AppProvider>
+        <Router>
+          <ErrorBoundary>
+            <AppContent />
+          </ErrorBoundary>
+        </Router>
+      </AppProvider>
+    </AuthProvider>
   );
 }
 

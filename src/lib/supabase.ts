@@ -86,6 +86,15 @@ if (supabase) {
   console.log('\n🧪 Testing Supabase Connection...');
   (async () => {
     try {
+      // Test auth connection
+      const { data: authData, error: authError } = await supabase.auth.getSession();
+      if (authError) {
+        console.error('❌ Supabase auth test failed:', authError);
+      } else {
+        console.log('✅ Supabase auth connection successful');
+      }
+      
+      // Test database connection
       const { data: classesData, error: classesError } = await supabase.from('classes').select('*').limit(1);
       if (classesError) {
         console.error('❌ Supabase connection test failed:', classesError);
