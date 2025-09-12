@@ -141,6 +141,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
             classId: student.class_id,
             photoUrl: student.photo_url,
             qrCode: student.qr_code,
+            email: student.email,
+            phone: student.phone,
             createdAt: new Date(student.created_at)
           })));
           setStaff(staffData.map(staff => ({
@@ -151,6 +153,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
             position: staff.position,
             photoUrl: staff.photo_url,
             qrCode: staff.qr_code,
+            email: staff.email,
+            phone: staff.phone,
             createdAt: new Date(staff.created_at)
           })));
           setAttendanceRecords(attendanceData);
@@ -244,12 +248,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       const sampleStudents: Student[] = [];
       
       const studentData = [
-        { id: 'student1', firstName: 'John', lastName: 'Smith', classId: 'class1', className: 'Mathematics 101' },
-        { id: 'student2', firstName: 'Emma', lastName: 'Johnson', classId: 'class1', className: 'Mathematics 101' },
-        { id: 'student3', firstName: 'Michael', lastName: 'Brown', classId: 'class2', className: 'English Literature' },
-        { id: 'student4', firstName: 'Sarah', lastName: 'Davis', classId: 'class2', className: 'English Literature' },
-        { id: 'student5', firstName: 'David', lastName: 'Wilson', classId: 'class3', className: 'Science Lab' },
-        { id: 'student6', firstName: 'Lisa', lastName: 'Anderson', classId: 'class3', className: 'Science Lab' }
+        { id: 'student1', firstName: 'John', lastName: 'Smith', classId: 'class1', className: 'Mathematics 101', email: 'john.smith@school.edu', phone: '(555) 123-4567' },
+        { id: 'student2', firstName: 'Emma', lastName: 'Johnson', classId: 'class1', className: 'Mathematics 101', email: 'emma.johnson@school.edu', phone: '(555) 234-5678' },
+        { id: 'student3', firstName: 'Michael', lastName: 'Brown', classId: 'class2', className: 'English Literature', email: 'michael.brown@school.edu', phone: '(555) 345-6789' },
+        { id: 'student4', firstName: 'Sarah', lastName: 'Davis', classId: 'class2', className: 'English Literature', email: 'sarah.davis@school.edu', phone: '(555) 456-7890' },
+        { id: 'student5', firstName: 'David', lastName: 'Wilson', classId: 'class3', className: 'Science Lab', email: 'david.wilson@school.edu', phone: '(555) 567-8901' },
+        { id: 'student6', firstName: 'Lisa', lastName: 'Anderson', classId: 'class3', className: 'Science Lab', email: 'lisa.anderson@school.edu', phone: '(555) 678-9012' }
       ];
       
       for (const student of studentData) {
@@ -262,6 +266,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
             classId: student.classId,
             photoUrl: null,
             qrCode,
+            email: student.email,
+            phone: student.phone,
             createdAt: new Date()
           });
         } catch (error) {
@@ -274,6 +280,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
             classId: student.classId,
             photoUrl: null,
             qrCode: '',
+            email: student.email,
+            phone: student.phone,
             createdAt: new Date()
           });
         }
@@ -287,11 +295,11 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       const sampleStaff: Staff[] = [];
       
       const staffData = [
-        { id: 'staff1', firstName: 'Robert', lastName: 'Thompson', department: 'Mathematics', position: 'Teacher' },
-        { id: 'staff2', firstName: 'Jennifer', lastName: 'Garcia', department: 'English', position: 'Teacher' },
-        { id: 'staff3', firstName: 'William', lastName: 'Martinez', department: 'Science', position: 'Lab Coordinator' },
-        { id: 'staff4', firstName: 'Mary', lastName: 'Rodriguez', department: 'Administration', position: 'Principal' },
-        { id: 'staff5', firstName: 'James', lastName: 'Lopez', department: 'Administration', position: 'Vice Principal' }
+        { id: 'staff1', firstName: 'Robert', lastName: 'Thompson', department: 'Mathematics', position: 'Teacher', email: 'robert.thompson@school.edu', phone: '(555) 111-2222' },
+        { id: 'staff2', firstName: 'Jennifer', lastName: 'Garcia', department: 'English', position: 'Teacher', email: 'jennifer.garcia@school.edu', phone: '(555) 222-3333' },
+        { id: 'staff3', firstName: 'William', lastName: 'Martinez', department: 'Science', position: 'Lab Coordinator', email: 'william.martinez@school.edu', phone: '(555) 333-4444' },
+        { id: 'staff4', firstName: 'Mary', lastName: 'Rodriguez', department: 'Administration', position: 'Principal', email: 'mary.rodriguez@school.edu', phone: '(555) 444-5555' },
+        { id: 'staff5', firstName: 'James', lastName: 'Lopez', department: 'Administration', position: 'Vice Principal', email: 'james.lopez@school.edu', phone: '(555) 555-6666' }
       ];
       
       for (const staff of staffData) {
@@ -305,6 +313,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
             position: staff.position,
             photoUrl: null,
             qrCode,
+            email: staff.email,
+            phone: staff.phone,
             createdAt: new Date()
           });
         } catch (error) {
@@ -318,6 +328,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
             position: staff.position,
             photoUrl: null,
             qrCode: '',
+            email: staff.email,
+            phone: staff.phone,
             createdAt: new Date()
           });
         }
@@ -353,12 +365,12 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       ];
       
       const basicStudents = [
-        { id: 'student1', firstName: 'John', lastName: 'Smith', classId: 'class1', photoUrl: null, qrCode: '', createdAt: new Date() },
-        { id: 'student2', firstName: 'Emma', lastName: 'Johnson', classId: 'class1', photoUrl: null, qrCode: '', createdAt: new Date() }
+        { id: 'student1', firstName: 'John', lastName: 'Smith', classId: 'class1', photoUrl: null, qrCode: '', email: 'john.smith@school.edu', phone: '(555) 123-4567', createdAt: new Date() },
+        { id: 'student2', firstName: 'Emma', lastName: 'Johnson', classId: 'class1', photoUrl: null, qrCode: '', email: 'emma.johnson@school.edu', phone: '(555) 234-5678', createdAt: new Date() }
       ];
       
       const basicStaff = [
-        { id: 'staff1', firstName: 'Robert', lastName: 'Thompson', department: 'Mathematics', position: 'Teacher', photoUrl: null, qrCode: '', createdAt: new Date() }
+        { id: 'staff1', firstName: 'Robert', lastName: 'Thompson', department: 'Mathematics', position: 'Teacher', photoUrl: null, qrCode: '', email: 'robert.thompson@school.edu', phone: '(555) 111-2222', createdAt: new Date() }
       ];
       
       setClasses(basicClasses);
@@ -384,7 +396,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
           last_name: studentData.lastName,
           class_id: studentData.classId || null,
           photo_url: null,
-          qr_code: null
+          qr_code: null,
+          email: studentData.email || null,
+          phone: studentData.phone || null
         }])
         .select()
         .single();
@@ -424,6 +438,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         classId: data.class_id,
         photoUrl,
         qrCode: qrCode,
+        email: data.email,
+        phone: data.phone,
         createdAt: new Date(data.created_at)
       };
 
@@ -462,6 +478,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       if (studentData.lastName) updateData.last_name = studentData.lastName;
       if (studentData.classId !== undefined) updateData.class_id = studentData.classId || null;
       if (photoUrl !== undefined) updateData.photo_url = photoUrl;
+      if (studentData.email !== undefined) updateData.email = studentData.email || null;
+      if (studentData.phone !== undefined) updateData.phone = studentData.phone || null;
 
       const { error } = await supabase
         .from('students')
@@ -525,7 +543,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
           department: staffData.department,
           position: staffData.position,
           photo_url: null,
-          qr_code: null
+          qr_code: null,
+          email: staffData.email || null,
+          phone: staffData.phone || null
         }])
         .select()
         .single();
@@ -566,6 +586,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
         position: data.position,
         photoUrl,
         qrCode: qrCode,
+        email: data.email,
+        phone: data.phone,
         createdAt: new Date(data.created_at)
       };
 
@@ -605,6 +627,8 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       if (staffData.department) updateData.department = staffData.department;
       if (staffData.position) updateData.position = staffData.position;
       if (photoUrl !== undefined) updateData.photo_url = photoUrl;
+      if (staffData.email !== undefined) updateData.email = staffData.email || null;
+      if (staffData.phone !== undefined) updateData.phone = staffData.phone || null;
 
       const { error } = await supabase
         .from('staff')

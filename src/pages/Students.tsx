@@ -26,7 +26,9 @@ const Students: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    classId: ''
+    classId: '',
+    email: '',
+    phone: ''
   });
 
   const filteredStudents = students.filter(student =>
@@ -140,7 +142,9 @@ const Students: React.FC = () => {
     setFormData({
       firstName: student.firstName,
       lastName: student.lastName,
-      classId: student.classId
+      classId: student.classId,
+      email: student.email || '',
+      phone: student.phone || ''
     });
     setEditingStudent(student.id);
     setShowModal(true);
@@ -335,7 +339,7 @@ const Students: React.FC = () => {
         const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
         
         if (missingHeaders.length > 0) {
-          setCsvError(`Missing required columns: ${missingHeaders.join(', ')}. Required: firstName, lastName. Optional: className`);
+          setCsvError(`Missing required columns: ${missingHeaders.join(', ')}. Required: firstName, lastName. Optional: className, email, phone`);
           return;
         }
 
@@ -347,6 +351,8 @@ const Students: React.FC = () => {
             if (header === 'firstname') student.firstName = values[i] || '';
             else if (header === 'lastname') student.lastName = values[i] || '';
             else if (header === 'classname') student.className = values[i] || '';
+            else if (header === 'email') student.email = values[i] || '';
+            else if (header === 'phone') student.phone = values[i] || '';
           });
           
           return { ...student, rowIndex: index + 2 };
@@ -394,6 +400,8 @@ const Students: React.FC = () => {
                     studentData.classId = foundClass?.id || '';
                   }
                 }
+                else if (header === 'email') studentData.email = values[index] || '';
+                else if (header === 'phone') studentData.phone = values[index] || '';
               });
               
               if (!studentData.firstName || !studentData.lastName) {
@@ -633,7 +641,7 @@ const Students: React.FC = () => {
                   onClick={() => {
                     setShowModal(false);
                     setEditingStudent(null);
-                    setFormData({ firstName: '', lastName: '', classId: '' });
+                    setFormData({ firstName: '', lastName: '', classId: '', email: '', phone: '' });
                     setPhotoFile(null);
                     setCroppedImage('');
                   }}
@@ -760,15 +768,15 @@ const Students: React.FC = () => {
                 <h3 className="text-sm font-medium text-blue-900 mb-2">CSV Format Requirements:</h3>
                 <ul className="text-sm text-blue-800 space-y-1">
                   <li>• <strong>Required columns:</strong> firstName, lastName</li>
-                  <li>• <strong>Optional columns:</strong> className (must match existing class names exactly)</li>
+                  <li>• <strong>Optional columns:</strong> className (must match existing class names exactly), email, phone</li>
                   <li>• First row should contain column headers</li>
                   <li>• Use commas to separate values</li>
                 </ul>
                 <div className="mt-3 p-2 bg-white rounded border text-xs font-mono">
                   <div className="text-gray-600">Example:</div>
-                  <div>firstName,lastName,className</div>
-                  <div>John,Smith,Mathematics 101</div>
-                  <div>Jane,Doe,English Literature</div>
+                  <div>firstName,lastName,className,email,phone</div>
+                  <div>John,Smith,Mathematics 101,john@school.edu,(555) 123-4567</div>
+                  <div>Jane,Doe,English Literature,jane@school.edu,(555) 987-6543</div>
                 </div>
               </div>
               
@@ -804,10 +812,18 @@ const Students: React.FC = () => {
                   <div className="border border-gray-200 rounded-lg overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
+                  {(student.email || student.phone) && (
+                    <div className="text-xs text-gray-500 mb-3 text-center space-y-1">
+                      {student.email && <p>📧 {student.email}</p>}
+                      {student.phone && <p>📱 {student.phone}</p>}
+                    </div>
+                  )}
                         <tr>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">First Name</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">Last Name</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">Class</th>
+                          <th className="px-3 py-2 text-left font-medium text-gray-900">Email</th>
+                          <th className="px-3 py-2 text-left font-medium text-gray-900">Phone</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">Status</th>
                         </tr>
                       </thead>
@@ -823,6 +839,12 @@ const Students: React.FC = () => {
                               <td className="px-3 py-2">{student.lastName}</td>
                               <td className="px-3 py-2">
                                 {student.className || <span className="text-gray-400">No class</span>}
+                              </td>
+                              <td className="px-3 py-2 text-xs">
+                                {student.email || <span className="text-gray-400">-</span>}
+                              </td>
+                              <td className="px-3 py-2 text-xs">
+                                {student.phone || <span className="text-gray-400">-</span>}
                               </td>
                               <td className="px-3 py-2">
                                 {!student.firstName || !student.lastName ? (

@@ -5,6 +5,8 @@ export interface Student {
   classId: string | null;
   photoUrl?: string | null;
   qrCode: string;
+  email?: string | null;
+  phone?: string | null;
   createdAt: Date;
 }
 
@@ -16,6 +18,8 @@ export interface Staff {
   position: string;
   photoUrl?: string | null;
   qrCode: string;
+  email?: string | null;
+  phone?: string | null;
   createdAt: Date;
 }
 

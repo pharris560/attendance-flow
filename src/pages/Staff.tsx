@@ -21,7 +21,9 @@ const Staff: React.FC = () => {
     firstName: '',
     lastName: '',
     department: '',
-    position: ''
+    position: '',
+    email: '',
+    phone: ''
   });
 
   // Get unique positions
@@ -60,7 +62,9 @@ const Staff: React.FC = () => {
       firstName: staffMember.firstName,
       lastName: staffMember.lastName,
       department: staffMember.department,
-      position: staffMember.position
+      position: staffMember.position,
+      email: staffMember.email || '',
+      phone: staffMember.phone || ''
     });
     setEditingStaff(staffMember.id);
     setShowModal(true);
@@ -254,7 +258,7 @@ const Staff: React.FC = () => {
         const missingHeaders = requiredHeaders.filter(h => !headers.includes(h));
         
         if (missingHeaders.length > 0) {
-          setCsvError(`Missing required columns: ${missingHeaders.join(', ')}. Required: firstName, lastName, department, position`);
+          setCsvError(`Missing required columns: ${missingHeaders.join(', ')}. Required: firstName, lastName, department, position. Optional: email, phone`);
           return;
         }
 
@@ -267,6 +271,8 @@ const Staff: React.FC = () => {
             else if (header === 'lastname') staffMember.lastName = values[i] || '';
             else if (header === 'department') staffMember.department = values[i] || '';
             else if (header === 'position') staffMember.position = values[i] || '';
+            else if (header === 'email') staffMember.email = values[i] || '';
+            else if (header === 'phone') staffMember.phone = values[i] || '';
           });
           
           return { ...staffMember, rowIndex: index + 2 };
@@ -309,6 +315,8 @@ const Staff: React.FC = () => {
                 else if (header === 'lastname') staffData.lastName = values[index] || '';
                 else if (header === 'department') staffData.department = values[index] || '';
                 else if (header === 'position') staffData.position = values[index] || '';
+                else if (header === 'email') staffData.email = values[index] || '';
+                else if (header === 'phone') staffData.phone = values[index] || '';
               });
               
               if (!staffData.firstName || !staffData.lastName || !staffData.department || !staffData.position) {
@@ -436,6 +444,12 @@ const Staff: React.FC = () => {
             </h3>
             <p className="text-sm text-purple-600 font-medium mb-1 text-center">{staffMember.position}</p>
             <p className="text-sm text-gray-500 mb-3 text-center">{staffMember.department}</p>
+            {(staffMember.email || staffMember.phone) && (
+              <div className="text-xs text-gray-500 mb-3 text-center space-y-1">
+                {staffMember.email && <p>📧 {staffMember.email}</p>}
+                {staffMember.phone && <p>📱 {staffMember.phone}</p>}
+              </div>
+            )}
             
             {/* QR Code Section */}
             <div className="border-t border-gray-200 pt-4">
@@ -539,6 +553,28 @@ const Staff: React.FC = () => {
               </div>
               
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email (Optional)</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                  placeholder="staff@school.edu"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Phone (Optional)</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  placeholder="(555) 123-4567"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Profile Photo (Optional)</label>
                 <input
                   type="file"
@@ -555,7 +591,7 @@ const Staff: React.FC = () => {
                   onClick={() => {
                     setShowModal(false);
                     setEditingStaff(null);
-                    setFormData({ firstName: '', lastName: '', department: '', position: '' });
+                    setFormData({ firstName: '', lastName: '', department: '', position: '', email: '', phone: '' });
                     setPhotoFile(null);
                   }}
                   className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors duration-200"
@@ -598,14 +634,15 @@ const Staff: React.FC = () => {
                 <h3 className="text-sm font-medium text-blue-900 mb-2">CSV Format Requirements:</h3>
                 <ul className="text-sm text-blue-800 space-y-1">
                   <li>• <strong>Required columns:</strong> firstName, lastName, department, position</li>
+                  <li>• <strong>Optional columns:</strong> email, phone</li>
                   <li>• First row should contain column headers</li>
                   <li>• Use commas to separate values</li>
                 </ul>
                 <div className="mt-3 p-2 bg-white rounded border text-xs font-mono">
                   <div className="text-gray-600">Example:</div>
-                  <div>firstName,lastName,department,position</div>
-                  <div>John,Smith,Mathematics,Teacher</div>
-                  <div>Jane,Doe,Administration,Principal</div>
+                  <div>firstName,lastName,department,position,email,phone</div>
+                  <div>John,Smith,Mathematics,Teacher,john@school.edu,(555) 123-4567</div>
+                  <div>Jane,Doe,Administration,Principal,jane@school.edu,(555) 987-6543</div>
                 </div>
               </div>
               
@@ -646,6 +683,8 @@ const Staff: React.FC = () => {
                           <th className="px-3 py-2 text-left font-medium text-gray-900">Last Name</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">Department</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">Position</th>
+                          <th className="px-3 py-2 text-left font-medium text-gray-900">Email</th>
+                          <th className="px-3 py-2 text-left font-medium text-gray-900">Phone</th>
                           <th className="px-3 py-2 text-left font-medium text-gray-900">Status</th>
                         </tr>
                       </thead>
@@ -656,6 +695,12 @@ const Staff: React.FC = () => {
                             <td className="px-3 py-2">{staffMember.lastName}</td>
                             <td className="px-3 py-2">{staffMember.department}</td>
                             <td className="px-3 py-2">{staffMember.position}</td>
+                            <td className="px-3 py-2 text-xs">
+                              {staffMember.email || <span className="text-gray-400">-</span>}
+                            </td>
+                            <td className="px-3 py-2 text-xs">
+                              {staffMember.phone || <span className="text-gray-400">-</span>}
+                            </td>
                             <td className="px-3 py-2">
                               {!staffMember.firstName || !staffMember.lastName || !staffMember.department || !staffMember.position ? (
                                 <span className="text-red-600 text-xs">Missing data</span>
