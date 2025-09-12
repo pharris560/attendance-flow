@@ -97,27 +97,27 @@ const Dashboard: React.FC = () => {
           
           <div className="flex justify-center">
             <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={dashboardData.attendanceByStatus}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent, value }) => {
-                  // Only show labels on desktop
-                  if (window.innerWidth < 1024) return '';
-                  return percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : '';
-                }}
-                outerRadius={100}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {dashboardData.attendanceByStatus.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
+              <PieChart>
+                <Pie
+                  data={dashboardData.attendanceByStatus}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent, value }) => {
+                    // Only show labels on desktop
+                    if (window.innerWidth < 1024) return '';
+                    return percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : '';
+                  }}
+                  outerRadius={100}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {dashboardData.attendanceByStatus.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
           </ResponsiveContainer>
           </div>
           
