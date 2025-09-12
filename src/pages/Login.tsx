@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Sparkles, Database, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
@@ -11,6 +11,7 @@ const Login: React.FC = () => {
   const [success, setSuccess] = useState<string>('');
   const [showDebugInfo, setShowDebugInfo] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -21,6 +22,15 @@ const Login: React.FC = () => {
   });
 
   useEffect(() => {
+    // Check if user was redirected after email confirmation
+    const confirmed = searchParams.get('confirmed');
+    if (confirmed === 'true') {
+      setSuccess('Email confirmed successfully! You can now sign in with your credentials.');
+      setIsLogin(true);
+      // Clear the URL parameter
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+    
     // Check if user is already logged in
     const checkUser = async () => {
       if (!supabase) return;
@@ -140,7 +150,7 @@ const Login: React.FC = () => {
             data: {
               full_name: formData.fullName,
             },
-            emailRedirectTo: `${window.location.origin}/`
+            emailRedirectTo: `${window.location.origin}/login?confirmed=true`
           }
         });
 
