@@ -51,13 +51,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUserProfile({
           id: data.id,
           fullName: data.full_name,
-          role: data.role,
+          role: data.role || 'user', // provide default role
           email: data.email,
-          phone: data.phone,
-          department: data.department,
-          position: data.position,
-          classId: data.class_id,
-          avatarUrl: data.avatar_url,
+          phone: data.phone || null,
+          department: data.department || null,
+          position: data.position || null,
+          classId: data.class_id || null,
+          avatarUrl: data.avatar_url || null,
           createdAt: new Date(data.created_at),
           updatedAt: new Date(data.updated_at)
         });
