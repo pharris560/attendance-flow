@@ -26,30 +26,54 @@ const Dashboard: React.FC = () => {
       ? Math.round((todayPresentStudents / studentsWithAttendanceToday) * 100)
       : 0;
 
-    // Classes distribution data
-    const hasClassData = classes.length > 0 && students.length > 0;
-    let classesByStudents = [];
+    // Attendance distribution data
+    const attendanceDistribution = [];
+    const hasAttendanceData = todayStudentRecords.length > 0;
     
-    if (hasClassData) {
-      // Generate colors for classes
-      const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316', '#06B6D4', '#84CC16'];
+    if (hasAttendanceData) {
+      const presentCount = todayStudentRecords.filter(record => record.status === 'present').length;
+      const absentCount = todayStudentRecords.filter(record => record.status === 'absent').length;
+      const tardyCount = todayStudentRecords.filter(record => record.status === 'tardy').length;
+      const excusedCount = todayStudentRecords.filter(record => record.status === 'excused').length;
+      const otherCount = todayStudentRecords.filter(record => record.status === 'other').length;
       
-      classesByStudents = classes.map((cls, index) => {
-        const studentCount = students.filter(student => student.classId === cls.id).length;
-        return {
-          name: cls.name,
-          value: studentCount,
-          color: colors[index % colors.length]
-        };
-      }).filter(item => item.value > 0); // Only show classes that have students
+      if (presentCount > 0) {
+        attendanceDistribution.push({
+          name: 'Present',
+          value: presentCount,
+          color: '#10B981'
+        });
+      }
       
-      // Add "No Class" category if there are unassigned students
-      const unassignedStudents = students.filter(student => !student.classId || student.classId === '').length;
-      if (unassignedStudents > 0) {
-        classesByStudents.push({
-          name: 'No Class Assigned',
-          value: unassignedStudents,
-          color: '#6B7280'
+      if (absentCount > 0) {
+        attendanceDistribution.push({
+          name: 'Absent',
+          value: absentCount,
+          color: '#EF4444'
+        });
+      }
+      
+      if (tardyCount > 0) {
+        attendanceDistribution.push({
+          name: 'Tardy',
+          value: tardyCount,
+          color: '#F59E0B'
+        });
+      }
+      
+      if (excusedCount > 0) {
+        attendanceDistribution.push({
+          name: 'Excused',
+          value: excusedCount,
+          color: '#3B82F6'
+        });
+      }
+      
+      if (otherCount > 0) {
+        attendanceDistribution.push({
+          name: 'Other',
+          value: otherCount,
+          color: '#8B5CF6'
         });
       }
     }
@@ -61,8 +85,8 @@ const Dashboard: React.FC = () => {
       todayPresentStudents,
       studentsWithAttendanceToday,
       todayAttendanceRate,
-      classesByStudents,
-      hasClassData
+      attendanceDistribution,
+      hasAttendanceData
     };
   }, [students.length, staff.length, classes.length, attendanceRecords.length]); // Only recalculate when counts change
 
@@ -118,30 +142,30 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Only show charts if we have attendance data */}
-      {dashboardData.hasClassData ? (
+      {dashboardData.hasAttendanceData ? (
         <>
-          {/* Classes Distribution Chart - Only if we have data */}
-          {dashboardData.classesByStudents.length > 0 && (
+          {/* Attendance Distribution Chart - Only if we have data */}
+          {dashboardData.attendanceDistribution.length > 0 && (
             <div className="mb-8">
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 max-w-4xl mx-auto">
-                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 text-center">Students by Class</h2>
+                <h2 className="text-xl lg:text-2xl font-bold text-gray-900 mb-4 text-center">Attendance Distribution</h2>
                 
                 <div className="flex justify-center">
                   <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
-                        data={dashboardData.classesByStudents}
+                        data={dashboardData.attendanceDistribution}
                         cx="50%"
                         cy="50%"
                         labelLine={false}
                         label={({ name, percent }) => {
-                          return percent > 0.05 ? `${(percent * 100).toFixed(0)}%` : '';
+                          return percent > 0.05 ? `${name}: ${(percent * 100).toFixed(0)}%` : '';
                         }}
                         outerRadius={100}
                         fill="#8884d8"
                         dataKey="value"
                       >
-                        {dashboardData.classesByStudents.map((entry, index) => (
+                        {dashboardData.attendanceDistribution.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
@@ -152,13 +176,13 @@ const Dashboard: React.FC = () => {
                 
                 {/* Legend */}
                 <div className="mt-4 flex flex-wrap justify-center gap-3">
-                  {dashboardData.classesByStudents.map((item) => (
+                  {dashboardData.attendanceDistribution.map((item) => (
                     <div key={item.name} className="flex items-center space-x-2 text-base font-medium">
                       <div 
                         className="w-4 h-4 rounded-full" 
                         style={{ backgroundColor: item.color }}
                       />
-                      <span className="text-gray-700">{item.name}: {item.value} student{item.value !== 1 ? 's' : ''}</span>
+                      <span className="text-gray-700">{item.name}: {item.value}</span>
                     </div>
                   ))}
                 </div>
@@ -229,8 +253,8 @@ const Dashboard: React.FC = () => {
         /* No data state - much faster to render */
         <div className="bg-white p-12 rounded-xl shadow-sm border border-gray-200 text-center">
           <Calendar className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 mb-2">No Class Data Yet</h2>
-          <p className="text-gray-600 mb-6">Add classes and assign students to see the distribution chart</p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">No Attendance Data Yet</h2>
+          <p className="text-gray-600 mb-6">Start taking attendance to see the distribution chart</p>
           <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4">
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <Users className="h-4 w-4" />
