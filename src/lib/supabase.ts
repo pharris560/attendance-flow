@@ -94,6 +94,16 @@ if (supabase) {
         console.log('✅ Supabase auth connection successful');
       }
       
+      // Test user_profiles table specifically
+      const { data: profilesData, error: profilesError } = await supabase.from('user_profiles').select('*').limit(1);
+      if (profilesError) {
+        console.error('❌ user_profiles table test failed:', profilesError);
+        console.error('This means the user roles migration has not been run yet');
+        console.log('🔧 Please run the user roles migration to enable signup');
+      } else {
+        console.log('✅ user_profiles table accessible');
+      }
+      
       // Test database connection
       const { data: classesData, error: classesError } = await supabase.from('classes').select('*').limit(1);
       if (classesError) {

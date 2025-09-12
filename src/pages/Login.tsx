@@ -140,13 +140,33 @@ const Login: React.FC = () => {
             data: {
               full_name: formData.fullName,
             },
-            emailRedirectTo: `${window.location.origin}/auth/callback`
+            emailRedirectTo: `${window.location.origin}/`
           }
         });
 
         if (error) throw error;
 
         if (data.user) {
+          // Try to create user profile manually if the trigger didn't work
+          try {
+            const { error: profileError } = await supabase
+              .from('user_profiles')
+              .insert([{
+                id: data.user.id,
+                full_name: formData.fullName,
+                email: formData.email,
+                role: 'student'
+              }]);
+            
+            if (profileError && !profileError.message.includes('duplicate key')) {
+              console.error('Profile creation error:', profileError);
+              // Don't throw error here - profile might be created by trigger
+            }
+          } catch (profileError) {
+            console.error('Manual profile creation failed:', profileError);
+            // Continue anyway - the trigger might have worked
+          }
+          
           if (data.user.email_confirmed_at) {
             setSuccess('Account created successfully! You can now sign in.');
             setIsLogin(true);
@@ -158,6 +178,14 @@ const Login: React.FC = () => {
         }
       }
     } catch (error: any) {
+      console.error('Signup error details:', error);
+      
+      // Handle specific database errors
+      if (error.message?.includes('Database error') || error.message?.includes('relation') || error.message?.includes('does not exist')) {
+        setError('Database setup incomplete. The user_profiles table may not exist yet. Please contact your administrator or check the database migration.');
+      } else if (error.message?.includes('duplicate key') || error.message?.includes('already registered')) {
+        setError('An account with this email already exists. Please try signing in instead.');
+      } else if (error.message?.includes('Invalid login credentials')) {
       if (error.message?.includes('Invalid login credentials')) {
         setError('Invalid email or password. If you just signed up, please check your email to verify your account first.');
       } else if (error.message?.includes('Email not confirmed')) {
