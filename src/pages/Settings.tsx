@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
-import { Settings as SettingsIcon, User, Bell, Shield, Database, Download } from 'lucide-react';
+import { Settings as SettingsIcon, User, Bell, Shield, Database, Download, Save } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { UserRole } from '../types';
 
 const Settings: React.FC = () => {
+  const { userProfile, updateUserProfile, hasRole, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('profile');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [settings, setSettings] = useState({
     profile: {
-      name: 'Ms. Johnson',
-      email: 'teacher@school.edu',
-      role: 'Administrator',
+      fullName: userProfile?.fullName || '',
+      phone: userProfile?.phone || '',
+      department: userProfile?.department || '',
+      position: userProfile?.position || '',
+      role: userProfile?.role || 'student',
     },
     notifications: {
       emailAlerts: true,
@@ -20,6 +27,21 @@ const Settings: React.FC = () => {
     }
   });
 
+  // Update settings when userProfile changes
+  React.useEffect(() => {
+    if (userProfile) {
+      setSettings(prev => ({
+        ...prev,
+        profile: {
+          fullName: userProfile.fullName,
+          phone: userProfile.phone || '',
+          department: userProfile.department || '',
+          position: userProfile.position || '',
+          role: userProfile.role,
+        }
+      }));
+    }
+  }, [userProfile]);
   const tabs = [
     { id: 'profile', label: 'Profile', icon: User },
     { id: 'notifications', label: 'Notifications', icon: Bell },
@@ -27,6 +49,13 @@ const Settings: React.FC = () => {
     { id: 'data', label: 'Data Management', icon: Database },
   ];
 
+  const roleOptions: { value: UserRole; label: string; description: string }[] = [
+    { value: 'student', label: 'Student', description: 'Can view own attendance and basic features' },
+    { value: 'teacher', label: 'Teacher', description: 'Can manage classes and take attendance' },
+    { value: 'staff', label: 'Staff', description: 'Can manage students and view reports' },
+    { value: 'volunteer', label: 'Volunteer', description: 'Limited access to help with events' },
+    { value: 'administrator', label: 'Administrator', description: 'Full access to all features' },
+  ];
   const updateSetting = (category: string, key: string, value: any) => {
     setSettings(prev => ({
       ...prev,
@@ -37,6 +66,29 @@ const Settings: React.FC = () => {
     }));
   };
 
+  const handleSaveProfile = async () => {
+    if (!userProfile) return;
+    
+    setLoading(true);
+    setMessage(null);
+    
+    try {
+      await updateUserProfile({
+        fullName: settings.profile.fullName,
+        phone: settings.profile.phone || null,
+        department: settings.profile.department || null,
+        position: settings.profile.position || null,
+        ...(isAdmin && { role: settings.profile.role as UserRole })
+      });
+      
+      setMessage({ type: 'success', text: 'Profile updated successfully!' });
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
+  };
   const exportData = () => {
     // In a real app, this would export actual data
     const dataStr = JSON.stringify({
@@ -54,6 +106,16 @@ const Settings: React.FC = () => {
     linkElement.click();
   };
 
+  if (!userProfile) {
+    return (
+      <div className="p-4 lg:p-4">
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading profile...</p>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="p-4 lg:p-4">
       <div className="mb-8">
@@ -61,6 +123,15 @@ const Settings: React.FC = () => {
         <p className="text-gray-600 mt-2">Manage your account and application preferences</p>
       </div>
 
+      {message && (
+        <div className={`mb-6 p-4 rounded-xl ${
+          message.type === 'success' 
+            ? 'bg-green-50 border border-green-200 text-green-800' 
+            : 'bg-red-50 border border-red-200 text-red-800'
+        }`}>
+          {message.text}
+        </div>
+      )}
       <div className="flex flex-col lg:flex-row space-y-6 lg:space-y-0 lg:space-x-8">
         {/* Sidebar */}
         <div className="w-full lg:w-64 bg-white rounded-xl shadow-sm border border-gray-200 h-fit">

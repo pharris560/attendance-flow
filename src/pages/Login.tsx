@@ -140,7 +140,7 @@ const Login: React.FC = () => {
             data: {
               full_name: formData.fullName,
             },
-            emailRedirectTo: window.location.origin
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         });
 

@@ -45,6 +45,22 @@ export interface AttendanceRecord {
   type: 'student' | 'staff';
 }
 
+export type UserRole = 'staff' | 'student' | 'teacher' | 'volunteer' | 'administrator';
+
+export interface UserProfile {
+  id: string;
+  fullName: string;
+  role: UserRole;
+  email: string;
+  phone?: string | null;
+  department?: string | null;
+  position?: string | null;
+  classId?: string | null;
+  avatarUrl?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface Teacher {
   id: string;
   name: string;
