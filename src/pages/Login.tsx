@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Sparkles, GraduationCap } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const Login: React.FC = () => {
@@ -128,9 +128,11 @@ const Login: React.FC = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center mb-4">
-            <div className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full">
-              <GraduationCap className="h-8 w-8 text-white" />
-            </div>
+            <img 
+              src="/ACE Logo.jpeg" 
+              alt="ACE Logo" 
+              className="h-16 w-auto object-contain"
+            />
             <Sparkles className="h-6 w-6 text-yellow-500 ml-2 animate-pulse" />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
