@@ -66,9 +66,9 @@ export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
       try {
         // Load all data in parallel for better performance
         const [classesResult, studentsResult, staffResult, attendanceResult] = await Promise.all([
-          supabase.from('classes').select('*').order('created_at', { ascending: true }),
-          supabase.from('students').select('*').order('created_at', { ascending: true }),
-          supabase.from('staff').select('*').order('created_at', { ascending: true }),
+          supabase.from('classes').select('*').order('created_at', { ascending: true }).limit(100),
+          supabase.from('students').select('*').order('created_at', { ascending: true }).limit(100),
+          supabase.from('staff').select('*').order('created_at', { ascending: true }).limit(100),
           supabase.from('attendance_records').select('*').order('timestamp', { ascending: false }).limit(1000) // Limit recent records
         ]);
 
