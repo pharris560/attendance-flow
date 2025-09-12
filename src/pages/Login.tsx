@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Sparkles, GraduationCap, Users } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Sparkles, GraduationCap } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const Login: React.FC = () => {
@@ -94,17 +94,6 @@ const Login: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDemoLogin = () => {
-    setFormData({
-      email: 'demo@attendanceai.app',
-      password: 'demo123',
-      confirmPassword: '',
-      fullName: ''
-    });
-    setError('');
-    setSuccess('Demo credentials loaded! Note: If demo account doesn\'t exist, you\'ll need to create it first by switching to Sign Up.');
   };
 
   const sassyMessages = {
@@ -300,28 +289,6 @@ const Login: React.FC = () => {
               )}
             </button>
 
-            {/* Demo Login Button */}
-            {isLogin && (
-              <button
-                type="button"
-                onClick={handleDemoLogin}
-                className="w-full py-3 px-4 rounded-xl font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-              >
-                <Users className="h-5 w-5 inline mr-2" />
-                Load Demo Credentials
-              </button>
-            )}
-
-            {/* Create Demo Account Helper */}
-            {isLogin && (
-              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
-                <p className="text-xs text-blue-700 text-center">
-                  <strong>First time?</strong> The demo account might not exist yet. 
-                  <br />
-                  Switch to "Sign Up" and create the demo account first!
-                </p>
-              </div>
-            )}
           </form>
 
           {/* Footer */}
