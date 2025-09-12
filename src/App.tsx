@@ -84,7 +84,7 @@ const AppContent: React.FC = () => {
 
       <div className="flex-1 flex flex-col">
         <Header onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 px-4 lg:px-6 py-4 overflow-auto">
+        <main className="flex-1 px-4 lg:px-4 py-4 overflow-auto">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/students" element={<Students />} />

@@ -66,7 +66,7 @@ const Dashboard: React.FC = () => {
   );
 
   return (
-    <div className="lg:ml-64 p-4 lg:p-6">
+    <div className="p-4 lg:p-4">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
         <p className="text-gray-600 mt-2">Overview of your attendance management system</p>

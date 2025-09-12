@@ -433,7 +433,7 @@ const Students: React.FC = () => {
   };
 
   return (
-    <div className="lg:ml-64 p-4 lg:p-6">
+    <div className="p-4 lg:p-4">
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-gray-900">Students</h1>

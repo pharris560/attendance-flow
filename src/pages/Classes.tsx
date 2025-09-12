@@ -181,7 +181,7 @@ const Classes: React.FC = () => {
       : classStudents;
     
     return (
-      <div className="lg:ml-64 p-4 lg:p-6">
+      <div className="p-4 lg:p-4">
         <div className="mb-8">
           <div className="flex items-center space-x-2 lg:space-x-4 mb-4">
             <button
