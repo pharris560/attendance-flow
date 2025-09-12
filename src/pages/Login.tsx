@@ -86,7 +86,11 @@ const Login: React.FC = () => {
         }
       }
     } catch (error: any) {
-      setError(error.message || 'An unexpected error occurred');
+      if (error.message?.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please check your credentials or create a new account.');
+      } else {
+        setError(error.message || 'An unexpected error occurred');
+      }
     } finally {
       setLoading(false);
     }
@@ -100,7 +104,7 @@ const Login: React.FC = () => {
       fullName: ''
     });
     setError('');
-    setSuccess('Demo credentials loaded! Click "Sign In" to continue.');
+    setSuccess('Demo credentials loaded! Note: If demo account doesn\'t exist, you\'ll need to create it first by switching to Sign Up.');
   };
 
   const sassyMessages = {
@@ -304,8 +308,19 @@ const Login: React.FC = () => {
                 className="w-full py-3 px-4 rounded-xl font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
               >
                 <Users className="h-5 w-5 inline mr-2" />
-                Try Demo Account
+                Load Demo Credentials
               </button>
+            )}
+
+            {/* Create Demo Account Helper */}
+            {isLogin && (
+              <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                <p className="text-xs text-blue-700 text-center">
+                  <strong>First time?</strong> The demo account might not exist yet. 
+                  <br />
+                  Switch to "Sign Up" and create the demo account first!
+                </p>
+              </div>
             )}
           </form>
 
