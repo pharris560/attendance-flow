@@ -186,7 +186,6 @@ const Login: React.FC = () => {
       } else if (error.message?.includes('duplicate key') || error.message?.includes('already registered')) {
         setError('An account with this email already exists. Please try signing in instead.');
       } else if (error.message?.includes('Invalid login credentials')) {
-      if (error.message?.includes('Invalid login credentials')) {
         setError('Invalid email or password. If you just signed up, please check your email to verify your account first.');
       } else if (error.message?.includes('Email not confirmed')) {
         setError('Please check your email and click the verification link before signing in.');
