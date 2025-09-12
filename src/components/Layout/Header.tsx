@@ -5,12 +5,12 @@ type Props = { onMenuClick: () => void };
 
 const AppHeader: React.FC<Props> = ({ onMenuClick }) => {
   return (
-    <header className="h-16 bg-white border-b flex items-center justify-between px-2 md:px-4">
+    <header className="h-16 bg-white border-b flex items-center justify-between px-4 lg:px-6">
       <button
         type="button"
         aria-label="Open menu"
         onClick={onMenuClick}
-        className="md:hidden p-2 -ml-1"
+        className="lg:hidden p-2 -ml-1"
       >
         <Menu className="w-6 h-6" />
       </button>

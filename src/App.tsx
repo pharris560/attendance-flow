@@ -79,12 +79,12 @@ const AppContent: React.FC = () => {
 
   // Responsive: desktop = two columns; mobile = stacked with drawer
   return (
-    <div className="min-h-dvh bg-gray-50 md:flex">
+    <div className="min-h-dvh bg-gray-50 lg:flex">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col">
         <Header onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 pl-2 md:pl-4 pr-4 md:pr-6 py-4 overflow-auto">
+        <main className="flex-1 px-4 lg:px-6 py-4 overflow-auto">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/students" element={<Students />} />

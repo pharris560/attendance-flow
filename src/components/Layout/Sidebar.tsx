@@ -20,12 +20,12 @@ export default function Sidebar({ open, onClose }: Props) {
   return (
     <>
       {/* Desktop sidebar (md and up) */}
-      <aside className="hidden md:flex w-64 h-dvh bg-white border-r flex-col">
+      <aside className="hidden lg:flex w-56 h-dvh bg-white border-r flex-col">
         <div className="h-16 px-4 flex items-center border-b">
           <div className="text-base font-semibold">ACE Attendance</div>
           <span className="ml-2 text-xs text-gray-500">Smart Tracking</span>
         </div>
-        <nav className="flex-1 overflow-y-auto p-2 space-y-1">
+        <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           <LinkItem to="/">Dashboard</LinkItem>
           <LinkItem to="/students">Students</LinkItem>
           <LinkItem to="/staff">Staff</LinkItem>
@@ -38,8 +38,8 @@ export default function Sidebar({ open, onClose }: Props) {
         </nav>
       </aside>
 
-      {/* Mobile drawer (below md) */}
-      <div className={`md:hidden fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}>
+      {/* Mobile drawer (below lg) */}
+      <div className={`lg:hidden fixed inset-0 z-50 ${open ? "" : "pointer-events-none"}`}>
         {/* Backdrop */}
         <div
           className={`absolute inset-0 bg-black/40 transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
