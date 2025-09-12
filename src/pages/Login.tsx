@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock, User, Sparkles } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Sparkles, Database, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const Login: React.FC = () => {
@@ -9,6 +9,8 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
+  const [showDebugInfo, setShowDebugInfo] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
@@ -31,6 +33,70 @@ const Login: React.FC = () => {
     
     checkUser();
   }, [navigate]);
+
+  const checkSupabaseUsers = async () => {
+    if (!supabase) {
+      setDebugInfo({ error: 'Supabase client not available' });
+      return;
+    }
+
+    try {
+      // Get current session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      
+      // Get current user
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      
+      // Try to get auth settings (this might fail due to permissions)
+      let authSettings = null;
+      try {
+        const { data: settingsData } = await supabase.auth.getSession();
+        authSettings = settingsData;
+      } catch (e) {
+        authSettings = { error: 'Cannot access auth settings' };
+      }
+
+      setDebugInfo({
+        timestamp: new Date().toISOString(),
+        session: {
+          exists: !!sessionData.session,
+          user: sessionData.session?.user ? {
+            id: sessionData.session.user.id,
+            email: sessionData.session.user.email,
+            emailConfirmed: !!sessionData.session.user.email_confirmed_at,
+            emailConfirmedAt: sessionData.session.user.email_confirmed_at,
+            createdAt: sessionData.session.user.created_at,
+            lastSignIn: sessionData.session.user.last_sign_in_at,
+            role: sessionData.session.user.role,
+            userMetadata: sessionData.session.user.user_metadata
+          } : null,
+          error: sessionError?.message
+        },
+        user: {
+          exists: !!userData.user,
+          data: userData.user ? {
+            id: userData.user.id,
+            email: userData.user.email,
+            emailConfirmed: !!userData.user.email_confirmed_at,
+            emailConfirmedAt: userData.user.email_confirmed_at,
+            createdAt: userData.user.created_at,
+            lastSignIn: userData.user.last_sign_in_at
+          } : null,
+          error: userError?.message
+        },
+        authSettings,
+        testEmail: formData.email || 'No email entered'
+      });
+      
+      setShowDebugInfo(true);
+    } catch (error: any) {
+      setDebugInfo({
+        error: error.message,
+        timestamp: new Date().toISOString()
+      });
+      setShowDebugInfo(true);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -282,10 +348,11 @@ const Login: React.FC = () => {
             )}
 
             {/* Submit Button */}
+            <div className="flex space-x-2">
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 px-4 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
+              className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none ${
                 isLogin
                   ? 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white focus:ring-blue-500'
                   : 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white focus:ring-purple-500'
@@ -300,6 +367,16 @@ const Login: React.FC = () => {
                 <span>{isLogin ? 'Sign In & Start Tracking! 🚀' : 'Create My Account! ✨'}</span>
               )}
             </button>
+            
+            <button
+              type="button"
+              onClick={checkSupabaseUsers}
+              className="px-4 py-3 bg-gray-600 hover:bg-gray-700 text-white rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              title="Check Supabase User Status"
+            >
+              <Database className="h-5 w-5" />
+            </button>
+            </div>
 
           </form>
 
