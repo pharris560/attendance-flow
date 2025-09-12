@@ -29,8 +29,8 @@ export const generateQRCodeURL = async (
       }
     }
     
-    // Create URL with query parameters for attendance check
-    const attendanceUrl = `${baseUrl}/attendance-check?type=${encodeURIComponent(personType)}&id=${encodeURIComponent(personId)}&name=${encodeURIComponent(personName)}&class=${encodeURIComponent(classOrDepartment)}&timestamp=${encodeURIComponent(new Date().toISOString())}`;
+    // Create URL with query parameters for attendance check - include both ID and name for fallback matching
+    const attendanceUrl = `${baseUrl}/attendance-check?type=${encodeURIComponent(personType)}&id=${encodeURIComponent(personId)}&name=${encodeURIComponent(personName)}&class=${encodeURIComponent(classOrDepartment)}&timestamp=${encodeURIComponent(new Date().toISOString())}&app=ace-attendance`;
     
     console.log('Generated QR code URL:', attendanceUrl);
     

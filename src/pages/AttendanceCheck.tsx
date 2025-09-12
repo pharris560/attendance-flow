@@ -55,7 +55,45 @@ const AttendanceCheck: React.FC = () => {
         console.error(`${type} not found with ID: ${id}`);
         console.log('Available students:', students.map(s => ({ id: s.id, name: `${s.firstName} ${s.lastName}` })));
         console.log('Available staff:', staff.map(s => ({ id: s.id, name: `${s.firstName} ${s.lastName}` })));
-        throw new Error(`${type === 'student' ? 'Student' : 'Staff member'} not found. Please ensure the QR code is from the current ACE Attendance system.`);
+        
+        // Try to find by name as fallback
+        const personByName = type === 'student' 
+          ? students.find(s => `${s.firstName} ${s.lastName}` === name)
+          : staff.find(s => `${s.firstName} ${s.lastName}` === name);
+          
+        if (personByName) {
+          console.log('Found person by name instead:', personByName);
+          // Use the person found by name
+          const attendanceData: any = {
+            status: 'present' as const,
+            date: new Date(),
+            type: type
+          };
+
+          if (type === 'student') {
+            attendanceData.studentId = personByName.id;
+            attendanceData.classId = personByName.classId;
+          } else {
+            attendanceData.staffId = personByName.id;
+            attendanceData.department = (personByName as any).department;
+          }
+
+          await markAttendance(attendanceData);
+
+          setStatus({
+            success: true,
+            message: `✅ ${personByName.firstName} ${personByName.lastName} has been marked as "Present" (matched by name)`,
+            person: personByName,
+            type
+          });
+          
+          setTimeout(() => {
+            navigate('/');
+          }, 5000);
+          return;
+        }
+        
+        throw new Error(`${type === 'student' ? 'Student' : 'Staff member'} "${name}" not found. This QR code may be from a different system or the person may have been removed.`);
       }
 
       console.log('Found person:', person);
