@@ -99,7 +99,7 @@ const Dashboard: React.FC = () => {
             <ResponsiveContainer width="100%" height={300}>
             <PieChart>
               <Pie
-                data={dashboardData.attendanceByStatus}
+                data={attendanceByStatus}
                 cx="50%"
                 cy="50%"
                 labelLine={false}
@@ -112,7 +112,7 @@ const Dashboard: React.FC = () => {
                 fill="#8884d8"
                 dataKey="value"
               >
-                {dashboardData.attendanceByStatus.map((entry, index) => (
+                {attendanceByStatus.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -123,7 +123,7 @@ const Dashboard: React.FC = () => {
           
           {/* Legend at bottom for desktop */}
           <div className="mt-4 hidden lg:flex flex-wrap justify-center gap-3">
-            {dashboardData.attendanceByStatus.filter(item => item.value > 0).map((item) => (
+            {attendanceByStatus.filter(item => item.value > 0).map((item) => (
               <div key={item.name} className="flex items-center space-x-2 text-base font-medium">
                 <div 
                   className="w-4 h-4 rounded-full" 
