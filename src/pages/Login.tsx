@@ -73,21 +73,31 @@ const Login: React.FC = () => {
           options: {
             data: {
               full_name: formData.fullName,
-            }
+            },
+            emailRedirectTo: window.location.origin
           }
         });
 
         if (error) throw error;
 
         if (data.user) {
-          setSuccess('Account created successfully! You can now sign in.');
-          setIsLogin(true);
-          setFormData({ email: formData.email, password: '', confirmPassword: '', fullName: '' });
+          if (data.user.email_confirmed_at) {
+            setSuccess('Account created successfully! You can now sign in.');
+            setIsLogin(true);
+            setFormData({ email: formData.email, password: '', confirmPassword: '', fullName: '' });
+          } else {
+            setSuccess('Account created! Please check your email to verify your account before signing in.');
+            setFormData({ email: formData.email, password: '', confirmPassword: '', fullName: '' });
+          }
         }
       }
     } catch (error: any) {
       if (error.message?.includes('Invalid login credentials')) {
-        setError('Invalid email or password. Please check your credentials or create a new account.');
+        setError('Invalid email or password. If you just signed up, please check your email to verify your account first.');
+      } else if (error.message?.includes('Email not confirmed')) {
+        setError('Please check your email and click the verification link before signing in.');
+      } else if (error.message?.includes('User not found')) {
+        setError('No account found with this email. Please sign up first.');
       } else {
         setError(error.message || 'An unexpected error occurred');
       }
@@ -295,6 +305,13 @@ const Login: React.FC = () => {
 
           {/* Footer */}
           <div className="mt-6 text-center">
+            {!isLogin && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-xl">
+                <p className="text-xs text-blue-700">
+                  📧 After signing up, you may need to verify your email address before you can sign in.
+                </p>
+              </div>
+            )}
             <p className="text-xs text-gray-500">
               {isLogin ? "New to ACE Attendance?" : "Already have an account?"}{' '}
               <button
