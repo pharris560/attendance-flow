@@ -1,9 +1,11 @@
 # ACE Attendance - Smart Attendance Tracking System
 
-A modern, comprehensive attendance management system built with React, TypeScript, and Supabase. This system provides QR code-based attendance tracking for both students and staff with real-time analytics and reporting.
+A modern, comprehensive SaaS attendance management system built with React, TypeScript, and Supabase. This system provides QR code-based attendance tracking for both students and staff with real-time analytics, reporting, and multi-user authentication.
 
 ## Features
 
+- **User Authentication**: Secure login/signup with Supabase Auth
+- **Multi-tenant SaaS**: Each user gets their own data workspace
 - **Student Management**: Add, edit, and organize students by classes with contact information
 - **Staff Management**: Manage staff members with departments, positions, and contact details
 - **QR Code Integration**: Generate and scan QR codes for quick attendance marking
@@ -13,6 +15,7 @@ A modern, comprehensive attendance management system built with React, TypeScrip
 - **Photo Support**: Upload profile photos for students and staff
 - **ID Card Generation**: Download professional ID cards with QR codes
 - **Photo Cropping**: Built-in photo cropping tool for profile pictures
+- **Email & Phone Support**: Full contact management for students and staff
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 - **Database Integration**: Full Supabase integration with demo mode fallback
 
@@ -20,6 +23,7 @@ A modern, comprehensive attendance management system built with React, TypeScrip
 
 - **Frontend**: React 18, TypeScript, Tailwind CSS
 - **Backend**: Supabase (PostgreSQL, Authentication, Storage)
+- **Authentication**: Supabase Auth with email/password
 - **Charts**: Recharts
 - **QR Codes**: QR Scanner, QRCode.js
 - **PDF Export**: jsPDF
@@ -30,8 +34,8 @@ A modern, comprehensive attendance management system built with React, TypeScrip
 
 Visit the live application at: [https://attendanceai.app](https://attendanceai.app)
 
-**Production Environment:**
-- Custom domain: `attendanceai.app`
+**Production Features:**
+- **Custom domain**: `attendanceai.app`
 - Database: Supabase with real-time sync
 - QR codes: Generated with production URLs
 
@@ -61,7 +65,7 @@ Visit the live application at: [https://attendanceai.app](https://attendanceai.a
    ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
-   ```
+   VITE_APP_URL=https://attendanceai.app
    
    **Note**: The app will run in demo mode if these variables are not set.
 
@@ -69,6 +73,15 @@ Visit the live application at: [https://attendanceai.app](https://attendanceai.a
    ```bash
    npm run dev
    ```
+
+## First Time Setup
+
+1. **Create an account** on the login page
+2. **Add your first class** in the Classes section
+3. **Import students** via CSV or add manually
+4. **Generate QR codes** for attendance tracking
+5. **Start taking attendance** with the QR scanner or manual entry
+6. **View reports** and analytics in the Reports section
 
 ### Database Setup (Optional)
 
@@ -81,7 +94,8 @@ The app works in two modes:
 1. Create a new Supabase project
 2. Run the SQL migrations in the `supabase/migrations` folder
 3. Create a storage bucket named `profile-photos` for photo uploads
-4. Set environment variables (see Installation step 3)
+4. Enable email authentication in Supabase Auth settings
+5. Set environment variables (see Installation step 3)
 
 #### Database Schema:
 
@@ -89,6 +103,7 @@ The system uses these main tables:
 - `students` - Student information with class assignments
 - `staff` - Staff members with departments and positions  
 - `classes` - Class/course definitions
+- `auth.users` - User accounts and authentication (managed by Supabase)
 - `attendance_records` - All attendance entries with timestamps
 
 ## Deployment
@@ -123,6 +138,11 @@ The built files will be in the `dist` directory.
 
 ### Taking Attendance
 
+**First, create an account:**
+1. Visit the login page
+2. Click "Sign Up" and create your account
+3. Sign in to access the full application
+
 1. Navigate to the Classes page
 2. Click on a class to enter attendance mode
 3. Select the date and mark attendance for each student/staff member
@@ -152,6 +172,7 @@ The built files will be in the `dist` directory.
 
 ## Project Structure
 
+- `/src/pages/Login.tsx` - Authentication and user registration
 - `/src/components` - Reusable UI components
 - `/src/pages` - Main application pages
 - `/src/contexts` - React context for state management
@@ -159,6 +180,14 @@ The built files will be in the `dist` directory.
 - `/src/types` - TypeScript type definitions
 - `/src/utils` - Helper functions and utilities
 - `/supabase/migrations` - Database schema migrations
+
+## Authentication Flow
+
+1. **User Registration** - Create account with email/password
+2. **Email Verification** - Supabase handles email confirmation
+3. **Secure Sessions** - Persistent login across browser sessions
+4. **Protected Routes** - All app features require authentication
+5. **User Isolation** - Each user's data is completely separate
 
 ## Contributing
 
