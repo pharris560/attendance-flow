@@ -1,14 +1,23 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// https://vitejs.dev/config/
 export default defineConfig({
+  base: '/',
   plugins: [react()],
-  esbuild: {
-    logOverride: { 'this-is-undefined-in-esm': 'silent' }
+  envPrefix: 'VITE_', // explicit
+  define: {
+    __BUILD_COMMIT__: JSON.stringify(
+      process.env.COMMIT_REF ??
+      process.env.VERCEL_GIT_COMMIT_SHA ??
+      ''
+    ),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
   },
   build: {
     outDir: 'dist',
-    sourcemap: false
+    sourcemap: true, // optional, handy for debugging
+  },
+  optimizeDeps: {
+    exclude: ['lucide-react'],
   },
 });
