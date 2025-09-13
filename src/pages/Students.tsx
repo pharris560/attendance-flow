@@ -1004,9 +1004,9 @@ const Students: React.FC = () => {
   );
 };
   
-return (/* ...your JSX... */);
-}; // <-- closes Students component
-
+    </div>
+  );
+}; // closes Students component
 
 export default Students;
 
