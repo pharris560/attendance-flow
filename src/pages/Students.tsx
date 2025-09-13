@@ -996,9 +996,6 @@ const Students: React.FC = () => {
               </div>
             </div>
           </div>
-        )}
-      </div> {/* ... */}
-);
-};
+        );
 
 export default Students;
