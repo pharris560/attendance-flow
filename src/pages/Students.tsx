@@ -974,14 +974,12 @@ const Students: React.FC = () => {
       )}
 
       {/* Delete Confirmation Modal */}
+            {/* Delete Confirmation Modal */}
       {showDeleteModal && personToDelete && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-full max-w-md">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Confirm Delete</h2>
-
-            <p className="text-gray-700 mb-6">
-              Are you sure you want to delete this student?
-            </p>
+            <p className="text-gray-700 mb-6">Are you sure you want to delete this student?</p>
 
             <div className="flex items-center justify-end space-x-3">
               <button
@@ -1000,13 +998,8 @@ const Students: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </div> {/* ← CLOSE the outermost Students page container */}
   );
-};
-  
-    </div>
-  );
-}; // closes Students component
+}; // ← closes Students component
 
 export default Students;
-
