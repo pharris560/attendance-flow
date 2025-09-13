@@ -997,7 +997,7 @@ const Students: React.FC = () => {
           </div>
         </div>
       )}
-    </div> {/* ← CLOSE the outermost Students page container */}
+        </div> {/* ← CLOSE the outermost Students page container */}
   );
 }; // ← closes Students component
 
