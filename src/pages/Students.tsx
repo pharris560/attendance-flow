@@ -8,7 +8,7 @@ type Student = {
   name: string;
   className?: string;
   attendance?: "Present" | "Absent" | "Tardy" | "Excused Absence" | "Excused Tardy";
-  [key: string]: any; // tolerate extra fields from your store
+  [key: string]: any;
 };
 
 type ClassRow = {
@@ -77,7 +77,6 @@ const StudentFormModal: React.FC<StudentFormProps> = ({
     initial?.attendance ?? "Present"
   );
 
-  // Reset form when opening with different initial
   React.useEffect(() => {
     setName(initial?.name ?? "");
     setClassName(initial?.className ?? "");
@@ -125,9 +124,7 @@ const StudentFormModal: React.FC<StudentFormProps> = ({
             <select
               className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={attendance ?? "Present"}
-              onChange={(e) =>
-                setAttendance(e.target.value as Student["attendance"])
-              }
+              onChange={(e) => setAttendance(e.target.value as Student["attendance"])}
             >
               <option>Present</option>
               <option>Absent</option>
@@ -169,7 +166,6 @@ const Students: React.FC = () => {
   const [toDelete, setToDelete] = useState<Student | null>(null);
 
   const classOptions: ClassRow[] = useMemo(() => {
-    // tolerate either array of strings or objects from your store
     if (Array.isArray(classes) && classes.length > 0) {
       const first = classes[0] as any;
       if (typeof first === "string") {
@@ -210,7 +206,6 @@ const Students: React.FC = () => {
       updateStudent(editing.id, data);
     } else {
       addStudent({
-        // let your store assign ids if it does; otherwise create a simple one:
         id: `${Date.now()}`,
         name: data.name,
         className: data.className,
@@ -341,11 +336,7 @@ const Students: React.FC = () => {
         onSave={handleSave}
       />
 
-      <DeleteConfirmModal
-        open={confirmOpen}
-        onCancel={cancelDelete}
-        onConfirm={confirmDelete}
-      />
+      <DeleteConfirmModal open={confirmOpen} onCancel={cancelDelete} onConfirm={confirmDelete} />
     </div>
   );
 };
