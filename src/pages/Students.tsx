@@ -16,6 +16,8 @@ const Students: React.FC = () => {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvPreview, setCsvPreview] = useState<any[]>([]);
   const [csvError, setCsvError] = useState<string | null>(null);
+  const [csvColumns, setCsvColumns] = useState<string[]>([]);
+  const [csvMapping, setCsvMapping] = useState<Record<string, string>>({});
   const [isProcessingCsv, setIsProcessingCsv] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
@@ -1001,6 +1003,10 @@ const Students: React.FC = () => {
     </div>
   );
 };
+  
+return (/* ...your JSX... */);
+}; // <-- closes Students component
+
 
 export default Students;
 
