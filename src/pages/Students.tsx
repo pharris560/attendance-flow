@@ -15,7 +15,7 @@ const Students: React.FC = () => {
   const [showCsvModal, setShowCsvModal] = useState(false);
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvPreview, setCsvPreview] = useState<any[]>([]);
-  const [csvError, setCsvError] = useState<string>('');
+  const [csvError, setCsvError] = useState<string | null>(null);
   const [isProcessingCsv, setIsProcessingCsv] = useState(false);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [showCropModal, setShowCropModal] = useState(false);
