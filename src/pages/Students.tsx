@@ -997,8 +997,8 @@ const Students: React.FC = () => {
             </div>
           </div>
         )}
-      </div> {/* ← CLOSE the outermost Students page container */}
-    );       {/* ← CLOSE the return( ... ) parenthesis */}
-};          {/* ← CLOSE the Students component function */}
+      </div> {/* ← CLOSE the outermost Students page container */)
+    );       {/* ← CLOSE the return( ... ) parenthesis */)
+};          {/* ← CLOSE the Students component function */)
 
 export default Students;
