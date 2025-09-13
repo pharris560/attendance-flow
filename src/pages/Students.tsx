@@ -996,9 +996,9 @@ const Students: React.FC = () => {
               </div>
             </div>
           </div>
-        );
-};
-
-export default Students;
+              )}
+    </div> {/* ← CLOSE the outermost Students page container */}
+  );
+}; // ← closes Students component
 
 export default Students;
