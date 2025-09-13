@@ -7,6 +7,9 @@ const Students: React.FC = () => {
   const { students, classes, addStudent, updateStudent, deleteStudent } = useApp();
   const [showModal, setShowModal] = useState(false);
   const [editingStudent, setEditingStudent] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({ name: "", classId: "", photoUrl: "" }); // add fields you actually have
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClass, setSelectedClass] = useState<string>('');
   const [showCsvModal, setShowCsvModal] = useState(false);
@@ -31,6 +34,16 @@ const Students: React.FC = () => {
     phone: ''
   });
 
+  function handleOpenEdit(student: any) {
+  setEditingStudent(student.id);                            // <-- critical
+  setForm({
+    name: student.name ?? "",
+    classId: student.classId ?? "",
+    photoUrl: student.photoUrl ?? "",
+  });  
+  setError(null);
+  setShowModal(true);
+  
   const filteredStudents = students.filter(student =>
     `${student.firstName} ${student.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) &&
     (selectedClass === '' || student.classId === selectedClass)
